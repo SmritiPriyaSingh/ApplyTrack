@@ -1,0 +1,234 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  image        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  resumes      Resume[]
+  applications Application[]
+  reminders    Reminder[]
+  activityLogs ActivityLog[]
+  goals        Goal[]
+}
+
+model Company {
+  id           String       @id @default(uuid())
+  name         String
+  logo         String?
+  website      String?
+  glassdoor    String?
+  industry     String?
+  headquarters String?
+  careerPage   String?
+  notes        String?      // Company-level notes (interview difficulty, culture, etc.)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  jobPostings  JobPosting[]
+  recruiters   Recruiter[]
+}
+
+model JobPosting {
+  id           String        @id @default(uuid())
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role         String
+  department   String?
+  location     String
+  workMode     String        @default("REMOTE") // REMOTE, HYBRID, ON_SITE
+  jobType      String        @default("FULL_TIME") // FULL_TIME, INTERNSHIP, CONTRACT, PART_TIME
+  package      String?
+  salaryMin    Float?
+  salaryMax    Float?
+  jobUrl       String?
+  deadline     DateTime?
+  description  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+}
+
+model Resume {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String        // e.g. Resume_SOC_v1.pdf
+  fileUrl      String
+  fileSize     String        @default("1.2 MB")
+  versionTag   String        // e.g. SOC_v1, Developer, General
+  targetRole   String?
+  skills       String?       // JSON string of skill tags
+  isDefault    Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+}
+
+model Application {
+  id              String             @id @default(uuid())
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPostingId    String
+  jobPosting      JobPosting         @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  resumeId        String?
+  resume          Resume?            @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  source          String             @default("LinkedIn") // LinkedIn, Company Website, Referral, Campus, Indeed
+  status          String             @default("APPLIED") // SAVED, APPLIED, APPLICATION_VIEWED, ONLINE_ASSESSMENT, TECHNICAL_INTERVIEW, HR_INTERVIEW, FINAL_INTERVIEW, OFFER, JOINED, REJECTED, GHOSTED
+  replyStatus     String             @default("NO_REPLY") // NO_REPLY, REPLIED, GHOSTED
+  replyChannel    String?            // EMAIL, PHONE, LINKEDIN, ASSESSMENT, INTERVIEW_INVITATION
+  replyDate       DateTime?
+  isGhosted       Boolean            @default(false)
+  applicationDate DateTime           @default(now())
+  notes           String?
+  rating          Int?               @default(3)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  recruiters      Recruiter[]
+  events          ApplicationEvent[]
+  statusHistory   StatusHistory[]
+  followUps       FollowUp[]
+  interviews      Interview[]
+  documents       Document[]
+  reminders       Reminder[]
+  tags            ApplicationTag[]
+}
+
+model Tag {
+  id           String           @id @default(uuid())
+  name         String           @unique
+  color        String           @default("#3b82f6") // Hex or tailwind color
+  applications ApplicationTag[]
+}
+
+model ApplicationTag {
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  tagId         String
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([applicationId, tagId])
+}
+
+model ApplicationEvent {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  title         String
+  description   String?
+  date          DateTime    @default(now())
+  eventType     String      // APPLIED, RECRUITER_EMAIL, ASSESSMENT, INTERVIEW, OFFER, REJECTION, FOLLOW_UP, NOTE
+  metadata      String?     // Optional JSON string for extra detail
+  createdAt     DateTime    @default(now())
+}
+
+model StatusHistory {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStatus    String?
+  toStatus      String
+  changedAt     DateTime    @default(now())
+  notes         String?
+}
+
+model FollowUp {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  scheduledDate DateTime
+  completedDate DateTime?
+  type          String      @default("EMAIL") // EMAIL, LINKEDIN, PHONE
+  notes         String?
+  status        String      @default("PENDING") // PENDING, COMPLETED, SKIPPED
+  createdAt     DateTime    @default(now())
+}
+
+model Recruiter {
+  id            String       @id @default(uuid())
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  companyId     String?
+  company       Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  name          String
+  email         String?
+  phone         String?
+  linkedin      String?
+  notes         String?
+  createdAt     DateTime     @default(now())
+}
+
+model Interview {
+  id               String      @id @default(uuid())
+  applicationId    String
+  application      Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  title            String
+  interviewType    String      @default("TECHNICAL") // SCREENING, TECHNICAL, BEHAVIORAL, SYSTEM_DESIGN, HR, FINAL
+  scheduledAt      DateTime
+  durationMinutes  Int         @default(45)
+  interviewerNames String?
+  meetingUrl       String?
+  location         String?
+  status           String      @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED, RESCHEDULED
+  feedbackNotes    String?
+  preparationNotes String?
+  createdAt        DateTime    @default(now())
+}
+
+model Reminder {
+  id            String       @id @default(uuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  title         String
+  description   String?
+  reminderType  String       @default("FOLLOW_UP") // FOLLOW_UP, ASSESSMENT_DEADLINE, INTERVIEW_PREP, APPLICATION_DEADLINE, CUSTOM
+  dueDate       DateTime
+  isCompleted   Boolean      @default(false)
+  priority      String       @default("MEDIUM") // LOW, MEDIUM, HIGH
+  createdAt     DateTime     @default(now())
+}
+
+model Document {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  name          String
+  docType       String      @default("RESUME") // RESUME, COVER_LETTER, OFFER_LETTER, ASSESSMENT_FILE, PORTFOLIO, OTHER
+  fileUrl       String
+  fileSize      String      @default("500 KB")
+  uploadedAt    DateTime    @default(now())
+}
+
+model ActivityLog {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String?
+  action        String   // STATUS_UPDATED, RESUME_CHANGED, INTERVIEW_ADDED, RECRUITER_UPDATED, APPLICATION_CREATED, NOTE_ADDED
+  details       String
+  timestamp     DateTime @default(now())
+}
+
+model Goal {
+  id                  String   @id @default(uuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month               Int      // 1 - 12
+  year                Int      // e.g. 2026
+  targetApplications  Int      @default(40)
+  currentApplications Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([userId, month, year])
+}
