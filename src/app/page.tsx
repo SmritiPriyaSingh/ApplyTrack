@@ -12,9 +12,7 @@ import {
   Plus, 
   Search, 
   User, 
-  Activity,
-  Sparkles,
-  Database
+  Activity
 } from 'lucide-react';
 import { formatDate, getStatusBadge, getDaysAgo } from '@/lib/utils';
 import { HIRING_STAGES } from '@/lib/constants';
@@ -28,7 +26,6 @@ export default function CareerCRMHomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('Smriti Priya Singh');
-  const [demoLoading, setDemoLoading] = useState(false);
 
   const fetchCRMData = () => {
     const savedName = localStorage.getItem('applytrack_user_name');
@@ -49,43 +46,6 @@ export default function CareerCRMHomePage() {
   useEffect(() => {
     fetchCRMData();
   }, []);
-
-  const handleLoadDemoData = async () => {
-    setDemoLoading(true);
-    try {
-      const res = await fetch('/api/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'load_demo' }),
-      });
-      if (res.ok) {
-        window.location.reload();
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setDemoLoading(false);
-    }
-  };
-
-  const handleClearWorkspace = async () => {
-    if (!confirm('Are you sure you want to reset workspace to 100% empty?')) return;
-    setDemoLoading(true);
-    try {
-      const res = await fetch('/api/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'clear' }),
-      });
-      if (res.ok) {
-        window.location.reload();
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setDemoLoading(false);
-    }
-  };
 
   const handleQuickStatusUpdate = async (appId: string, currentStatus: string) => {
     const currentIndex = HIRING_STAGES.findIndex((s) => s.id === currentStatus);
@@ -199,26 +159,6 @@ export default function CareerCRMHomePage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          {applications.length > 0 ? (
-            <button
-              onClick={handleClearWorkspace}
-              disabled={demoLoading}
-              className="px-3 py-1.5 rounded-xl bg-[#1A1A1A] hover:bg-[#0A0A0A] text-[#BFC3C7] hover:text-[#EFECEC] text-xs font-medium border border-white/5 flex items-center gap-1.5 transition"
-            >
-              <Database className="w-3.5 h-3.5 text-[#737373]" />
-              <span>Clear Workspace</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleLoadDemoData}
-              disabled={demoLoading}
-              className="px-3.5 py-1.5 rounded-xl bg-[#1A1A1A] hover:bg-[#0A0A0A] text-[#62929A] hover:text-[#EFECEC] text-xs font-medium border border-[#62929A]/30 flex items-center gap-1.5 transition"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#62929A]" />
-              <span>{demoLoading ? 'Loading Demo...' : 'Load Demo Data'}</span>
-            </button>
-          )}
-
           <button
             onClick={() => setIsModalOpen(true)}
             className="px-4 py-2 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center gap-1.5 transition active:scale-95 shadow-sm"
@@ -239,26 +179,17 @@ export default function CareerCRMHomePage() {
           <div className="space-y-1.5">
             <h2 className="text-base font-bold text-[#EFECEC] tracking-tight">Your Career CRM is Clean & Ready</h2>
             <p className="text-xs text-[#BFC3C7] max-w-md mx-auto leading-relaxed">
-              Start tracking job applications, recruiter contacts, and hiring timelines. Record your first application or load demo data to explore.
+              Start tracking job applications, recruiter contacts, and hiring timelines by adding your first application.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex items-center justify-center gap-3 pt-2">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center justify-center gap-2 transition shadow-sm"
+              className="px-5 py-2.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center justify-center gap-2 transition shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Add Your First Application</span>
-            </button>
-
-            <button
-              onClick={handleLoadDemoData}
-              disabled={demoLoading}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#1A1A1A] hover:bg-[#242424] text-[#62929A] text-xs font-medium border border-[#62929A]/30 flex items-center justify-center gap-1.5 transition"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{demoLoading ? 'Loading Demo...' : 'Load Demo Data'}</span>
             </button>
           </div>
         </div>

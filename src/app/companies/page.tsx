@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { ExternalLink, Edit3, Building2, Plus, Sparkles } from 'lucide-react';
+import { ExternalLink, Edit3, Building2, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { NewApplicationModal } from '@/components/applications/new-application-modal';
 
@@ -11,7 +11,6 @@ export default function CompaniesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [notesInput, setNotesInput] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [demoLoading, setDemoLoading] = useState(false);
 
   const fetchCompanies = () => {
     fetch('/api/companies')
@@ -26,22 +25,6 @@ export default function CompaniesPage() {
   useEffect(() => {
     fetchCompanies();
   }, []);
-
-  const handleLoadDemoData = async () => {
-    setDemoLoading(true);
-    try {
-      const res = await fetch('/api/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'load_demo' }),
-      });
-      if (res.ok) window.location.reload();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setDemoLoading(false);
-    }
-  };
 
   const handleSaveNotes = async (companyId: string) => {
     try {
@@ -87,21 +70,13 @@ export default function CompaniesPage() {
               Companies will be normalized and added here automatically whenever you record a job application.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex items-center justify-center gap-3 pt-2">
             <button
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl inline-flex items-center gap-1.5 transition shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Add Your First Application</span>
-            </button>
-            <button
-              onClick={handleLoadDemoData}
-              disabled={demoLoading}
-              className="px-4 py-2 bg-[#1A1A1A] hover:bg-[#242424] text-[#62929A] text-xs font-medium rounded-xl border border-[#62929A]/30 inline-flex items-center gap-1.5 transition"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{demoLoading ? 'Loading Demo...' : 'Load Demo Data'}</span>
             </button>
           </div>
         </div>

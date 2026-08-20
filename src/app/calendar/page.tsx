@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Video, CheckCircle2, Circle, Calendar as CalendarIcon, Plus, Sparkles } from 'lucide-react';
+import { Video, CheckCircle2, Circle, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { NewApplicationModal } from '@/components/applications/new-application-modal';
 
@@ -10,7 +10,6 @@ export default function CalendarPage() {
   const [interviews, setInterviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [demoLoading, setDemoLoading] = useState(false);
 
   useEffect(() => {
     fetch('/api/applications')
@@ -40,22 +39,6 @@ export default function CalendarPage() {
       })
       .catch((err) => setLoading(false));
   }, []);
-
-  const handleLoadDemoData = async () => {
-    setDemoLoading(true);
-    try {
-      const res = await fetch('/api/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'load_demo' }),
-      });
-      if (res.ok) window.location.reload();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setDemoLoading(false);
-    }
-  };
 
   const toggleTask = (id: string) => {
     setReminders((prev) =>
@@ -93,21 +76,13 @@ export default function CalendarPage() {
               Scheduled technical rounds and task deadlines attached to your job applications will appear here automatically.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex items-center justify-center gap-3 pt-2">
             <button
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl inline-flex items-center gap-1.5 transition shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>Add Your First Application</span>
-            </button>
-            <button
-              onClick={handleLoadDemoData}
-              disabled={demoLoading}
-              className="px-4 py-2 bg-[#1A1A1A] hover:bg-[#242424] text-[#62929A] text-xs font-medium rounded-xl border border-[#62929A]/30 inline-flex items-center gap-1.5 transition"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{demoLoading ? 'Loading Demo...' : 'Load Demo Data'}</span>
             </button>
           </div>
         </div>
