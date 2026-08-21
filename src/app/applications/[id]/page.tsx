@@ -234,16 +234,17 @@ export default function ApplicationDetailPage() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
-      <div className="flex items-center justify-between">
+      {/* RESPONSIVE HEADER BAR */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
         <div className="flex items-center gap-3">
           <Link
             href="/applications"
-            className="p-2 rounded-xl bg-[#0B0B0B] border border-white/5 text-[#BFC3C7] hover:text-[#EFECEC] transition"
+            className="p-2 rounded-xl bg-[#0B0B0B] border border-white/5 text-[#BFC3C7] hover:text-[#EFECEC] transition shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] font-medium text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5 font-mono">
                 {typeConfig.label}
               </span>
@@ -253,7 +254,7 @@ export default function ApplicationDetailPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-xl font-bold text-[#EFECEC] flex items-center gap-2 mt-0.5">
+            <h1 className="text-base sm:text-xl font-bold text-[#EFECEC] tracking-tight mt-0.5 line-clamp-2">
               {company?.name || 'Organization'} — {jobPosting?.role || 'Opportunity'}
             </h1>
           </div>
@@ -261,7 +262,7 @@ export default function ApplicationDetailPage() {
 
         <button
           onClick={handleDeleteRecord}
-          className="px-3.5 py-1.5 rounded-xl bg-[#D96C6C]/10 hover:bg-[#D96C6C] text-[#D96C6C] hover:text-[#EFECEC] border border-[#D96C6C]/30 text-xs font-semibold flex items-center gap-1.5 transition"
+          className="px-3 py-1.5 rounded-xl bg-[#D96C6C]/10 hover:bg-[#D96C6C] text-[#D96C6C] hover:text-[#EFECEC] border border-[#D96C6C]/30 text-xs font-semibold flex items-center gap-1.5 transition shrink-0 self-start sm:self-auto"
         >
           <Trash2 className="w-3.5 h-3.5" />
           <span>Delete Entry</span>
@@ -269,21 +270,21 @@ export default function ApplicationDetailPage() {
       </div>
 
       {/* USER-BUILDABLE VISUAL PROGRESS JOURNEY TIMELINE STRIP */}
-      <div className="bg-[#0B0B0B] border border-white/5 p-5 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-[#0B0B0B] border border-white/5 p-4 sm:p-5 rounded-2xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <span className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider flex items-center gap-2 font-mono">
-            <Layers className="w-4 h-4 text-[#C3195D]" />
-            Visual Progress Journey
+            <Layers className="w-4 h-4 text-[#C3195D] shrink-0" />
+            <span>Visual Progress Journey</span>
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setShowAddStageModal(true)}
-              className="px-3 py-1 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-bold flex items-center gap-1 transition shadow-sm"
+              className="px-3 py-1 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-bold flex items-center gap-1 transition shadow-sm shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>+ Add Next Process Step</span>
             </button>
-            <span className={`px-2.5 py-1 rounded text-xs font-semibold ${currentBadge.color}`}>
+            <span className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 ${currentBadge.color}`}>
               {currentBadge.label}
             </span>
           </div>
@@ -302,7 +303,7 @@ export default function ApplicationDetailPage() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <input
                 type="text"
                 required
@@ -322,7 +323,7 @@ export default function ApplicationDetailPage() {
         )}
 
         {/* Dynamic Journey Progression Flow Bar */}
-        <div className="flex items-center justify-between overflow-x-auto py-3 px-2 bg-[#1A1A1A] rounded-xl border border-white/5">
+        <div className="flex items-center justify-between overflow-x-auto py-3 px-2 bg-[#1A1A1A] rounded-xl border border-white/5 scrollbar-thin">
           {typeStages.map((stage, idx) => {
             const isCompleted = idx <= currentStageIndex;
             const isCurrent = idx === currentStageIndex;
@@ -382,10 +383,10 @@ export default function ApplicationDetailPage() {
         {/* MAIN TAB CONTENT */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-5 space-y-4">
-            <div className="flex border-b border-white/5 pb-2 gap-4 text-xs font-medium">
+            <div className="flex border-b border-white/5 pb-2 gap-4 text-xs font-medium overflow-x-auto">
               <button
                 onClick={() => setActiveTab('journey')}
-                className={`pb-2 transition border-b-2 ${
+                className={`pb-2 transition border-b-2 shrink-0 ${
                   activeTab === 'journey'
                     ? 'border-[#C3195D] text-[#EFECEC]'
                     : 'border-transparent text-[#BFC3C7] hover:text-[#EFECEC]'
@@ -395,7 +396,7 @@ export default function ApplicationDetailPage() {
               </button>
               <button
                 onClick={() => setActiveTab('timeline')}
-                className={`pb-2 transition border-b-2 ${
+                className={`pb-2 transition border-b-2 shrink-0 ${
                   activeTab === 'timeline'
                     ? 'border-[#C3195D] text-[#EFECEC]'
                     : 'border-transparent text-[#BFC3C7] hover:text-[#EFECEC]'
@@ -405,7 +406,7 @@ export default function ApplicationDetailPage() {
               </button>
               <button
                 onClick={() => setActiveTab('notes')}
-                className={`pb-2 transition border-b-2 ${
+                className={`pb-2 transition border-b-2 shrink-0 ${
                   activeTab === 'notes'
                     ? 'border-[#C3195D] text-[#EFECEC]'
                     : 'border-transparent text-[#BFC3C7] hover:text-[#EFECEC]'
@@ -456,16 +457,16 @@ export default function ApplicationDetailPage() {
 
                 {/* 2. ADMIT CARD DOWNLOAD */}
                 {(extraDataObj.admitCardLink || extraDataObj.admitCardFileData) && (
-                  <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 flex items-center justify-between">
+                  <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <FileCheck className="w-5 h-5 text-[#62929A]" />
+                      <FileCheck className="w-5 h-5 text-[#62929A] shrink-0" />
                       <div>
                         <h4 className="text-xs font-bold text-[#EFECEC]">Admit Card Ready</h4>
                         <p className="text-[11px] text-[#BFC3C7]">Admit card has been issued for this exam.</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {extraDataObj.admitCardLink && (
                         <a
                           href={extraDataObj.admitCardLink}

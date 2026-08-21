@@ -19,9 +19,9 @@ export function Header({ onSearch }: HeaderProps) {
 
   return (
     <>
-      <header className="h-14 border-b border-white/5 bg-[#0A0A0A] px-6 flex items-center justify-between sticky top-0 z-30">
+      <header className="h-14 border-b border-white/5 bg-[#0A0A0A] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 gap-3">
         {/* Search Input */}
-        <div className="relative w-80">
+        <div className="relative flex-1 max-w-xs sm:max-w-sm">
           <Search className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -33,13 +33,14 @@ export function Header({ onSearch }: HeaderProps) {
         </div>
 
         {/* Primary CTA Button (#C3195D Signature Brand Color) */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center gap-1.5 transition active:scale-95 shadow-sm"
+            className="px-3 sm:px-3.5 py-1.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>New Application</span>
+            <span className="hidden xs:inline">New Application</span>
+            <span className="xs:hidden">New</span>
           </button>
         </div>
       </header>
