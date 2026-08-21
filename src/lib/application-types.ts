@@ -55,7 +55,7 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       { id: 'OFFER', label: 'Offer Received', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'JOINED', label: 'Joined / Accepted', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
       { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
-      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
+      { id: 'GHOSTED', label: 'Ghosted', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -101,7 +101,7 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       { id: 'OFFER_LETTER', label: 'Offer Letter', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'ENROLLED', label: 'Enrolled', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
       { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
-      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
+      { id: 'GHOSTED', label: 'Ghosted', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -129,7 +129,7 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       { id: 'WINNER', label: 'Winner / Rank', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
       { id: 'HACK_COMPLETED', label: 'Completed', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
       { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
-      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
+      { id: 'GHOSTED', label: 'Ghosted', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -157,7 +157,7 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       { id: 'SELECTED', label: 'Selected', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'FELLOW_JOINED', label: 'Joined Program', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
       { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
-      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
+      { id: 'GHOSTED', label: 'Ghosted', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -207,7 +207,7 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       { id: 'INTERVIEW', label: 'Interview', color: 'bg-[#62929A]/25 text-[#62929A] border-[#62929A]/40' },
       { id: 'COMPLETED', label: 'Completed', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
       { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
-      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
+      { id: 'GHOSTED', label: 'Ghosted', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 };

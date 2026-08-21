@@ -325,9 +325,9 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   onChange={(e) => setPriority(e.target.value as any)}
                   className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs font-bold text-[#EFECEC] focus:outline-none focus:border-[#62929A]"
                 >
-                  <option value="HIGH" className="bg-[#0B0B0B] text-[#C3195D]">🔴 High Priority</option>
-                  <option value="MEDIUM" className="bg-[#0B0B0B] text-[#E2B85C]">🟡 Medium Priority</option>
-                  <option value="LOW" className="bg-[#0B0B0B] text-[#6CBF84]">🟢 Low Priority</option>
+                  <option value="HIGH" className="bg-[#0B0B0B] text-[#C3195D]">High Priority</option>
+                  <option value="MEDIUM" className="bg-[#0B0B0B] text-[#E2B85C]">Medium Priority</option>
+                  <option value="LOW" className="bg-[#0B0B0B] text-[#6CBF84]">Low Priority</option>
                 </select>
               </div>
             </div>
@@ -450,7 +450,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     >
                       <option value="Paid" className="bg-[#0B0B0B]">✓ Paid</option>
                       <option value="Pending" className="bg-[#0B0B0B]">○ Pending</option>
-                      <option value="Free" className="bg-[#0B0B0B]">🟢 Free / Waived</option>
+                      <option value="Free" className="bg-[#0B0B0B]">Free / Waived</option>
                     </select>
                   </div>
 
@@ -537,7 +537,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     >
                       <option value="No" className="bg-[#0B0B0B]">○ No Scholarship</option>
                       <option value="Yes" className="bg-[#0B0B0B] text-[#6CBF84]">✓ Yes - Scholarship Granted</option>
-                      <option value="Applied" className="bg-[#0B0B0B] text-[#E2B85C]">🟡 Applied & Awaiting Result</option>
+                      <option value="Applied" className="bg-[#0B0B0B] text-[#E2B85C]">Applied & Awaiting Result</option>
                     </select>
                   </div>
                 </div>

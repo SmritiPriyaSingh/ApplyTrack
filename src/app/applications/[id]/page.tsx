@@ -252,7 +252,7 @@ export default function ApplicationDetailPage() {
               </span>
               {extraDataObj.priority && (
                 <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-[#C3195D]/15 text-[#C3195D] border border-[#C3195D]/30">
-                  🔴 {extraDataObj.priority} Priority
+                  {extraDataObj.priority} Priority
                 </span>
               )}
             </div>
@@ -281,10 +281,10 @@ export default function ApplicationDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setShowAddStageModal(true)}
-              className="px-3 py-1 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-bold flex items-center gap-1 transition shadow-sm shrink-0"
+              className="px-3.5 py-1.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-bold flex items-center gap-1.5 transition shadow-sm shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>+ Add Next Process Step</span>
+              <span>Add Next Process Step</span>
             </button>
             <span className={`px-2.5 py-1 rounded text-xs font-semibold shrink-0 ${currentBadge.color}`}>
               {currentBadge.label}
@@ -324,18 +324,18 @@ export default function ApplicationDetailPage() {
           </form>
         )}
 
-        {/* Dynamic Journey Progression Flow Bar */}
-        <div className="flex items-center justify-between overflow-x-auto py-3 px-2 bg-[#1A1A1A] rounded-xl border border-white/5 scrollbar-thin">
+        {/* Dynamic Journey Progression Flow Bar with Clean No-Overlap Spacing */}
+        <div className="flex items-center gap-2 overflow-x-auto py-3 px-3 bg-[#1A1A1A] rounded-xl border border-white/5 scrollbar-thin">
           {typeStages.map((stage, idx) => {
             const isCompleted = idx <= currentStageIndex;
             const isCurrent = idx === currentStageIndex;
             const isCustom = customStages.some((cs) => cs.id === stage.id || cs.label === stage.label);
 
             return (
-              <div key={stage.id} className="flex items-center flex-1 shrink-0 min-w-[120px]">
+              <div key={stage.id} className="flex items-center shrink-0">
                 <div
                   onClick={() => handleUpdateStatus(stage.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer group relative ${
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border transition cursor-pointer group relative whitespace-nowrap ${
                     isCurrent
                       ? 'bg-[#C3195D] text-[#EFECEC] border-[#C3195D] shadow-md font-bold'
                       : isCompleted
@@ -344,13 +344,13 @@ export default function ApplicationDetailPage() {
                   }`}
                 >
                   <div
-                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
                       isCompleted ? 'bg-[#C3195D] text-[#EFECEC]' : 'bg-white/10 text-[#737373]'
                     }`}
                   >
                     {isCompleted ? '✓' : idx + 1}
                   </div>
-                  <span className="text-[11px] truncate">{stage.label}</span>
+                  <span className="text-[11px] font-semibold">{stage.label}</span>
 
                   {/* Allow deleting custom user steps */}
                   {isCustom && (
@@ -361,7 +361,7 @@ export default function ApplicationDetailPage() {
                         handleRemoveCustomStage(stage.id);
                       }}
                       title="Remove this custom step"
-                      className="opacity-0 group-hover:opacity-100 text-[#D96C6C] hover:text-white transition ml-1"
+                      className="opacity-0 group-hover:opacity-100 text-[#D96C6C] hover:text-white transition ml-1.5"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -370,7 +370,7 @@ export default function ApplicationDetailPage() {
 
                 {idx < typeStages.length - 1 && (
                   <div
-                    className={`h-0.5 flex-1 mx-1.5 ${
+                    className={`w-5 h-0.5 mx-1.5 shrink-0 ${
                       idx < currentStageIndex ? 'bg-[#C3195D]' : 'bg-white/10'
                     }`}
                   />
@@ -449,8 +449,8 @@ export default function ApplicationDetailPage() {
                           {extraDataObj.hasScholarship === 'Yes'
                             ? '✓ Granted'
                             : extraDataObj.hasScholarship === 'Applied'
-                            ? '🟡 Applied & Awaiting'
-                            : '○ No Scholarship'}
+                            ? 'Applied & Awaiting'
+                            : 'No Scholarship'}
                         </span>
                       </div>
 
