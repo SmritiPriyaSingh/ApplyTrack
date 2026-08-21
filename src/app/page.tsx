@@ -14,16 +14,12 @@ import {
   ChevronRight, 
   Plus, 
   Search, 
-  Activity,
   AlertTriangle,
   Calendar,
-  CheckCircle2,
-  Download,
-  CreditCard,
-  CheckSquare
+  Trash2
 } from 'lucide-react';
 import { formatDate, getDaysAgo } from '@/lib/utils';
-import { APPLICATION_TYPES, getStageBadgeForType, getAllStagesForType, VISUAL_JOURNEY_STAGES } from '@/lib/application-types';
+import { APPLICATION_TYPES, getStageBadgeForType, getAllStagesForType } from '@/lib/application-types';
 import { NewApplicationModal } from '@/components/applications/new-application-modal';
 
 export default function CareerCRMHomePage() {
@@ -75,6 +71,21 @@ export default function CareerCRMHomePage() {
         setApplications((prev) =>
           prev.map((app) => (app.id === appId ? { ...app, status: nextStage.id } : app))
         );
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteApplication = async (appId: string, companyName: string) => {
+    if (!confirm(`Are you sure you want to delete this application entry (${companyName})?`)) return;
+
+    try {
+      const res = await fetch(`/api/applications/${appId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setApplications((prev) => prev.filter((a) => a.id !== appId));
       }
     } catch (err) {
       console.error(err);
@@ -156,23 +167,6 @@ export default function CareerCRMHomePage() {
   });
 
   upcomingExamCards.sort((a, b) => a.daysLeft - b.daysLeft);
-
-  // Recent timeline events
-  const allEvents: any[] = [];
-  applications.forEach((app) => {
-    if (app.events) {
-      app.events.forEach((ev: any) => {
-        allEvents.push({
-          ...ev,
-          companyName: app.jobPosting?.company?.name,
-          role: app.jobPosting?.role,
-          appId: app.id,
-          appType: app.appType,
-        });
-      });
-    }
-  });
-  allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="space-y-6 animate-fade-in pb-10">
@@ -376,11 +370,11 @@ export default function CareerCRMHomePage() {
                     <th className="pb-2.5 px-3">Organization & Title</th>
                     <th className="pb-2.5 px-3">Current Status</th>
                     <th className="pb-2.5 px-3">Visual Journey Progress</th>
-                    <th className="pb-2.5 px-3 text-right">Progress Step</th>
+                    <th className="pb-2.5 px-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {filteredApps.slice(0, 10).map((app) => {
+                  {filteredApps.slice(0, 15).map((app) => {
                     const companyName = app.jobPosting?.company?.name || 'Organization';
                     const role = app.jobPosting?.role || 'Opportunity';
                     const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
@@ -450,7 +444,7 @@ export default function CareerCRMHomePage() {
                         </td>
 
                         <td className="py-3 px-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleQuickStatusUpdate(app.id, app.status, app.appType || 'JOB')}
                               className="px-2.5 py-1 rounded-lg bg-[#1A1A1A] hover:bg-[#C3195D] hover:text-[#EFECEC] border border-white/5 text-[#EFECEC] text-[10px] font-medium flex items-center gap-1 transition"
@@ -460,10 +454,17 @@ export default function CareerCRMHomePage() {
                             </button>
                             <Link
                               href={`/applications/${app.id}`}
-                              className="p-1 rounded-lg text-[#BFC3C7] hover:text-[#EFECEC] hover:bg-[#1A1A1A] transition"
+                              className="p-1.5 rounded-lg text-[#BFC3C7] hover:text-[#EFECEC] hover:bg-[#1A1A1A] transition"
                             >
                               <ArrowUpRight className="w-3.5 h-3.5" />
                             </Link>
+                            <button
+                              onClick={() => handleDeleteApplication(app.id, companyName)}
+                              title="Delete Application Entry"
+                              className="p-1.5 rounded-lg text-[#D96C6C]/80 hover:text-[#D96C6C] hover:bg-[#D96C6C]/10 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>

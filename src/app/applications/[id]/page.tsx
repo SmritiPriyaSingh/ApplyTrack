@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ArrowLeft, 
@@ -17,13 +17,15 @@ import {
   Download,
   UploadCloud,
   CheckCircle2,
-  FileCheck
+  FileCheck,
+  Trash2
 } from 'lucide-react';
 import { APPLICATION_TYPES, getAllStagesForType, getStageBadgeForType } from '@/lib/application-types';
 import { formatDate } from '@/lib/utils';
 
 export default function ApplicationDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
 
   const [app, setApp] = useState<any | null>(null);
@@ -90,6 +92,22 @@ export default function ApplicationDetailPage() {
     }
   };
 
+  const handleDeleteRecord = async () => {
+    const title = company?.name || 'this entry';
+    if (!confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) return;
+
+    try {
+      const res = await fetch(`/api/applications/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        router.push('/applications');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const toggleDocChecklist = async (key: string) => {
     const updatedDocs = {
       ...(extraDataObj.docsChecklist || {}),
@@ -139,28 +157,38 @@ export default function ApplicationDetailPage() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
-      <div className="flex items-center gap-3">
-        <Link
-          href="/applications"
-          className="p-2 rounded-xl bg-[#0B0B0B] border border-white/5 text-[#BFC3C7] hover:text-[#EFECEC] transition"
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </Link>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-medium text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5 font-mono">
-              {typeConfig.label}
-            </span>
-            {extraDataObj.priority && (
-              <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-[#C3195D]/15 text-[#C3195D] border border-[#C3195D]/30">
-                🔴 {extraDataObj.priority} Priority
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/applications"
+            className="p-2 rounded-xl bg-[#0B0B0B] border border-white/5 text-[#BFC3C7] hover:text-[#EFECEC] transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-medium text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5 font-mono">
+                {typeConfig.label}
               </span>
-            )}
+              {extraDataObj.priority && (
+                <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-[#C3195D]/15 text-[#C3195D] border border-[#C3195D]/30">
+                  🔴 {extraDataObj.priority} Priority
+                </span>
+              )}
+            </div>
+            <h1 className="text-xl font-bold text-[#EFECEC] flex items-center gap-2 mt-0.5">
+              {company?.name || 'Organization'} — {jobPosting?.role || 'Opportunity'}
+            </h1>
           </div>
-          <h1 className="text-xl font-bold text-[#EFECEC] flex items-center gap-2 mt-0.5">
-            {company?.name || 'Organization'} — {jobPosting?.role || 'Opportunity'}
-          </h1>
         </div>
+
+        <button
+          onClick={handleDeleteRecord}
+          className="px-3.5 py-1.5 rounded-xl bg-[#D96C6C]/10 hover:bg-[#D96C6C] text-[#D96C6C] hover:text-[#EFECEC] border border-[#D96C6C]/30 text-xs font-semibold flex items-center gap-1.5 transition"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+          <span>Delete Entry</span>
+        </button>
       </div>
 
       {/* FEATURE 10: INTERACTIVE VISUAL JOURNEY PROGRESS TIMELINE BAR */}
