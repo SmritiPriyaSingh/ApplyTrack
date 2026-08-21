@@ -158,8 +158,8 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               <Briefcase className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-[#EFECEC]">Track New Opportunity Entry</h2>
-              <p className="text-[11px] text-[#BFC3C7]">Monitor Jobs, Govt Programs (Yuva Sangam), Hackathons/CTFs & Exams</p>
+              <h2 className="text-sm font-semibold text-[#EFECEC]">Track Opportunity Entry</h2>
+              <p className="text-[11px] text-[#BFC3C7]">Monitor Jobs, Govt Programs, Hackathons/CTFs, & Exams</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg text-[#BFC3C7] hover:text-[#EFECEC] hover:bg-[#1A1A1A] transition">
@@ -180,9 +180,9 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                 const newType = e.target.value;
                 setOpportunityType(newType);
                 if (newType === 'GOVT_PROGRAM') {
-                  setFormData((prev) => ({ ...prev, source: 'Government Portal (ebsb.aicte-india.org)' }));
+                  setFormData((prev) => ({ ...prev, source: 'Government Portal' }));
                 } else if (newType === 'HACKATHON_CTF') {
-                  setFormData((prev) => ({ ...prev, source: 'CTFtime / Hackathon Portal' }));
+                  setFormData((prev) => ({ ...prev, source: 'Hackathon / CTF Platform' }));
                 }
               }}
               className="w-full px-3 py-2 bg-[#0B0B0B] border border-[#C3195D]/40 rounded-xl text-xs font-medium text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -205,12 +205,12 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   required
                   placeholder={
                     opportunityType === 'GOVT_PROGRAM'
-                      ? 'e.g. Ministry of Education / AICTE (ebsb.aicte-india.org)'
+                      ? 'e.g. Government Department / Ministry Portal'
                       : opportunityType === 'HACKATHON_CTF'
-                      ? 'e.g. CTFtime / HackTheBox / Smart India Hackathon'
+                      ? 'e.g. Event Organizer / Hosting Platform'
                       : opportunityType === 'EXAM_ADMISSION'
-                      ? 'e.g. NTA / GATE / IIT Bombay'
-                      : 'e.g. CrowdStrike, Microsoft'
+                      ? 'e.g. Examination Board / Institution Name'
+                      : 'e.g. Company or Organization Name'
                   }
                   value={formData.companyName}
                   onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
@@ -228,12 +228,12 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   required
                   placeholder={
                     opportunityType === 'GOVT_PROGRAM'
-                      ? 'e.g. Yuva Sangam Phase-VII Visit'
+                      ? 'e.g. Youth Fellowship / Exposure Visit Program'
                       : opportunityType === 'HACKATHON_CTF'
-                      ? 'e.g. National Cyber Security CTF 2026'
+                      ? 'e.g. Annual Cyber Security CTF'
                       : opportunityType === 'EXAM_ADMISSION'
-                      ? 'e.g. GATE Computer Science Exam'
-                      : 'e.g. SOC Analyst / Security Engineer'
+                      ? 'e.g. Entrance Examination / Degree Course'
+                      : 'e.g. Software Engineer, Analyst, Associate'
                   }
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -250,13 +250,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </label>
               <input
                 type="text"
-                placeholder={
-                  opportunityType === 'GOVT_PROGRAM'
-                    ? 'e.g. Ek Bharat Shreshtha Bharat'
-                    : opportunityType === 'HACKATHON_CTF'
-                    ? 'e.g. Web Security / DFIR'
-                    : 'e.g. Threat Intelligence'
-                }
+                placeholder="e.g. Department or Scheme Division"
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                 className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -297,7 +291,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                 <MapPin className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder="e.g. India / Assam / Remote"
+                  placeholder="e.g. City, Region, or Remote"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -313,13 +307,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                 <DollarSign className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder={
-                    opportunityType === 'HACKATHON_CTF'
-                      ? 'e.g. ₹1,00,000 Cash Prize'
-                      : opportunityType === 'GOVT_PROGRAM'
-                      ? 'e.g. Fully Funded Exposure Visit'
-                      : 'e.g. $135,000 /yr'
-                  }
+                  placeholder="e.g. Package / Stipend / Reward"
                   value={formData.package}
                   onChange={(e) => setFormData({ ...formData, package: e.target.value })}
                   className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -385,7 +373,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     className="px-3.5 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-[11px] font-medium rounded-lg inline-flex items-center gap-1.5 transition shadow-sm"
                   >
                     <UploadCloud className="w-3.5 h-3.5" />
-                    <span>Upload Resume / ID Document</span>
+                    <span>Upload Document</span>
                   </button>
                 </div>
               )}
@@ -416,7 +404,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               >
                 <UploadCloud className="w-5 h-5 text-[#C3195D] mb-1" />
                 <span className="text-xs font-medium text-[#EFECEC]">
-                  {selectedFileName ? `Selected: ${selectedFileName}` : 'Choose Resume / ID File (.pdf, .docx)'}
+                  {selectedFileName ? `Selected: ${selectedFileName}` : 'Choose Document File (.pdf, .docx)'}
                 </span>
                 <span className="text-[10px] text-[#737373] mt-0.5">Click to browse your documents</span>
 
@@ -431,11 +419,11 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
               {/* Single Clean Title Input Field */}
               <div>
-                <label className="block text-[11px] text-[#BFC3C7] mb-1">Document Label / Name *</label>
+                <label className="block text-[11px] text-[#BFC3C7] mb-1">Document Label / Title *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. SOC Resume, Yuva Sangam Application Form"
+                  placeholder="e.g. Primary Resume, Application Form"
                   value={newResumeTitle}
                   onChange={(e) => setNewResumeTitle(e.target.value)}
                   className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -457,10 +445,10 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
           )}
 
           <div>
-            <label className="block text-xs font-medium text-[#EFECEC] mb-1">Private Notes / Registration Ref #</label>
+            <label className="block text-xs font-medium text-[#EFECEC] mb-1">Private Notes / Reference ID</label>
             <textarea
               rows={2}
-              placeholder="e.g. Registration ID: YS-2026-89412, Submitted on ebsb.aicte-india.org..."
+              placeholder="e.g. Application reference number, registration status, follow-up dates..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="w-full p-3 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D] resize-none"
