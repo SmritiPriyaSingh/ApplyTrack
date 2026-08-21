@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getApplicationTypeConfig } from '@/lib/application-types';
 
 export async function GET(request: Request) {
   try {
@@ -9,6 +10,7 @@ export async function GET(request: Request) {
     const tag = searchParams.get('tag');
     const workMode = searchParams.get('workMode');
     const resumeId = searchParams.get('resumeId');
+    const appType = searchParams.get('appType');
     const needAttention = searchParams.get('needAttention') === 'true';
 
     const user = await prisma.user.findFirst();
@@ -20,6 +22,10 @@ export async function GET(request: Request) {
     const where: any = {
       userId: user.id,
     };
+
+    if (appType) {
+      where.appType = appType;
+    }
 
     if (status) {
       where.status = status;
@@ -79,7 +85,6 @@ export async function GET(request: Request) {
       orderBy: { applicationDate: 'desc' },
     });
 
-    // If needAttention is requested, filter applications with status in (APPLIED, ONLINE_ASSESSMENT, APPLICATION_VIEWED) and applicationDate > 10 days ago with no reply
     if (needAttention) {
       const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
       applications = applications.filter((app) => {
@@ -100,7 +105,23 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { companyName, role, department, location, workMode, jobType, package: pkg, salaryMin, salaryMax, jobUrl, source, resumeId, notes, tagNames } = body;
+    const {
+      appType = 'JOB',
+      companyName,
+      role,
+      department,
+      location,
+      workMode,
+      jobType,
+      package: pkg,
+      salaryMin,
+      salaryMax,
+      jobUrl,
+      source,
+      resumeId,
+      notes,
+      extraData,
+    } = body;
 
     let user = await prisma.user.findFirst();
     if (!user) {
@@ -109,7 +130,11 @@ export async function POST(request: Request) {
       });
     }
 
-    // 1. Find or create company
+    // Get config for initial stage
+    const typeConfig = getApplicationTypeConfig(appType);
+    const initialStatus = typeConfig.stages[0]?.id || 'APPLIED';
+
+    // 1. Find or create company/organization
     let company = await prisma.company.findFirst({
       where: { name: { equals: companyName } },
     });
@@ -122,7 +147,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 2. Create Job Posting
+    // 2. Create Job Posting / Opportunity Record
     const jobPosting = await prisma.jobPosting.create({
       data: {
         companyId: company.id,
@@ -138,15 +163,17 @@ export async function POST(request: Request) {
       },
     });
 
-    // 3. Create Application
+    // 3. Create Application with appType and extraData
     const application = await prisma.application.create({
       data: {
         userId: user.id,
         jobPostingId: jobPosting.id,
-        resumeId: resumeId || null,
-        source: source || 'LinkedIn',
-        status: 'APPLIED',
+        resumeId: appType === 'JOB' ? resumeId || null : null, // Resume only saved if type is JOB!
+        appType,
+        source: source || 'Direct Portal',
+        status: initialStatus,
         notes,
+        extraData: extraData ? JSON.stringify(extraData) : null,
         applicationDate: new Date(),
       },
     });
@@ -155,9 +182,9 @@ export async function POST(request: Request) {
     await prisma.applicationEvent.create({
       data: {
         applicationId: application.id,
-        title: 'Application Created',
-        description: `Applied for ${role} position via ${source || 'LinkedIn'}`,
-        eventType: 'APPLIED',
+        title: `Entry Registered: ${typeConfig.label}`,
+        description: `Registered ${role} under ${companyName}`,
+        eventType: initialStatus,
       },
     });
 
@@ -166,8 +193,8 @@ export async function POST(request: Request) {
       data: {
         applicationId: application.id,
         fromStatus: 'SAVED',
-        toStatus: 'APPLIED',
-        notes: 'Initial application submission',
+        toStatus: initialStatus,
+        notes: `Initial registration for ${typeConfig.label}`,
       },
     });
 
@@ -177,11 +204,11 @@ export async function POST(request: Request) {
         userId: user.id,
         applicationId: application.id,
         action: 'APPLICATION_CREATED',
-        details: `Created new application for ${role} at ${companyName}`,
+        details: `Registered ${typeConfig.label} for ${role} at ${companyName}`,
       },
     });
 
-    // 7. Increment current month goal count
+    // 7. Increment goal count
     const month = new Date().getMonth() + 1;
     const year = new Date().getFullYear();
     await prisma.goal.upsert({

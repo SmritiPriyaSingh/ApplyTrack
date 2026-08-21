@@ -14,9 +14,9 @@ export const HIRING_STAGES = [
 
 export const OPPORTUNITY_TYPES = [
   { id: 'JOB', label: '💼 Job Application', companyLabel: 'Company / Organization', roleLabel: 'Role Title' },
-  { id: 'GOVT_PROGRAM', label: '🏛️ Govt Program & Fellowship', companyLabel: 'Government Portal / Ministry', roleLabel: 'Program / Fellowship Title' },
-  { id: 'HACKATHON_CTF', label: '🏆 Hackathon & CTF Challenge', companyLabel: 'Organizer / Platform', roleLabel: 'Hackathon / CTF Title' },
-  { id: 'EXAM_ADMISSION', label: '📝 Entrance Exam & College Admission', companyLabel: 'Conducting Body / Institution', roleLabel: 'Exam / Course Name' },
+  { id: 'GOVT_PROGRAM', label: '🏛️ Govt Program / Youth Scheme (Yuva Sangam, AICTE)', companyLabel: 'Government Portal / Ministry', roleLabel: 'Program / Fellowship Title' },
+  { id: 'HACKATHON_CTF', label: '🏆 Hackathon & CTF Challenge', companyLabel: 'Organizer / Platform (e.g. CTFtime)', roleLabel: 'Hackathon / CTF Title' },
+  { id: 'EXAM_ADMISSION', label: '📝 Entrance Exam & College Admission', companyLabel: 'Conducting Body / Institute', roleLabel: 'Exam / Course Name' },
   { id: 'SCHOLARSHIP', label: '🏅 Scholarship & Competition', companyLabel: 'Sponsoring Organization', roleLabel: 'Scholarship / Award Title' },
 ] as const;
 
@@ -36,10 +36,10 @@ export const JOB_TYPES = [
 export const SOURCES = [
   'LinkedIn',
   'Company Website',
-  'Government Portal',
+  'Government Portal (ebsb.aicte-india.org)',
   'YouTube',
-  'Hackathon / CTF Platform',
-  'College / Institution Portal',
+  'CTFtime / Hackathon Portal',
+  'College / University Portal',
   'Referral',
   'Campus Placement',
   'Indeed',
@@ -49,10 +49,12 @@ export const SOURCES = [
 ] as const;
 
 export const DEFAULT_TAGS = [
-  { name: 'Full Stack', color: 'bg-[#1A1A1A] text-[#C3195D] border-white/10' },
-  { name: 'Govt Fellowship', color: 'bg-[#1A1A1A] text-[#E2B85C] border-white/10' },
+  { name: 'SOC', color: 'bg-[#1A1A1A] text-[#C3195D] border-white/10' },
+  { name: 'Yuva Sangam', color: 'bg-[#1A1A1A] text-[#E2B85C] border-white/10' },
   { name: 'CTF', color: 'bg-[#1A1A1A] text-[#62929A] border-white/10' },
+  { name: 'Govt Scheme', color: 'bg-[#1A1A1A] text-[#6CBF84] border-white/10' },
   { name: 'Hackathon', color: 'bg-[#1A1A1A] text-[#C3195D] border-white/10' },
   { name: 'Entrance Exam', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-  { name: 'Remote', color: 'bg-[#1A1A1A] text-[#C3195D] border-white/10' },
+  { name: 'Blue Team', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
+  { name: 'Cloud', color: 'bg-[#1A1A1A] text-[#62929A] border-white/10' },
 ] as const;

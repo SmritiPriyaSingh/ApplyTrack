@@ -81,15 +81,17 @@ model Application {
   jobPosting      JobPosting         @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
   resumeId        String?
   resume          Resume?            @relation(fields: [resumeId], references: [id], onDelete: SetNull)
-  source          String             @default("LinkedIn") // LinkedIn, Company Website, Referral, Campus, Indeed
-  status          String             @default("APPLIED") // SAVED, APPLIED, APPLICATION_VIEWED, ONLINE_ASSESSMENT, TECHNICAL_INTERVIEW, HR_INTERVIEW, FINAL_INTERVIEW, OFFER, JOINED, REJECTED, GHOSTED
-  replyStatus     String             @default("NO_REPLY") // NO_REPLY, REPLIED, GHOSTED
-  replyChannel    String?            // EMAIL, PHONE, LINKEDIN, ASSESSMENT, INTERVIEW_INVITATION
+  appType         String             @default("JOB") // JOB, EXAM, COLLEGE, HACKATHON, FELLOWSHIP, CERTIFICATION, CUSTOM
+  source          String             @default("LinkedIn")
+  status          String             @default("APPLIED")
+  replyStatus     String             @default("NO_REPLY")
+  replyChannel    String?
   replyDate       DateTime?
   isGhosted       Boolean            @default(false)
   applicationDate DateTime           @default(now())
   notes           String?
   rating          Int?               @default(3)
+  extraData       String?            // JSON string storing exam dates, admit card dates, team info, fees, etc.
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   recruiters      Recruiter[]
@@ -105,7 +107,7 @@ model Application {
 model Tag {
   id           String           @id @default(uuid())
   name         String           @unique
-  color        String           @default("#3b82f6") // Hex or tailwind color
+  color        String           @default("#3b82f6")
   applications ApplicationTag[]
 }
 
@@ -125,8 +127,8 @@ model ApplicationEvent {
   title         String
   description   String?
   date          DateTime    @default(now())
-  eventType     String      // APPLIED, RECRUITER_EMAIL, ASSESSMENT, INTERVIEW, OFFER, REJECTION, FOLLOW_UP, NOTE
-  metadata      String?     // Optional JSON string for extra detail
+  eventType     String
+  metadata      String?
   createdAt     DateTime    @default(now())
 }
 
@@ -146,9 +148,9 @@ model FollowUp {
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   scheduledDate DateTime
   completedDate DateTime?
-  type          String      @default("EMAIL") // EMAIL, LINKEDIN, PHONE
+  type          String      @default("EMAIL")
   notes         String?
-  status        String      @default("PENDING") // PENDING, COMPLETED, SKIPPED
+  status        String      @default("PENDING")
   createdAt     DateTime    @default(now())
 }
 
@@ -171,13 +173,13 @@ model Interview {
   applicationId    String
   application      Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   title            String
-  interviewType    String      @default("TECHNICAL") // SCREENING, TECHNICAL, BEHAVIORAL, SYSTEM_DESIGN, HR, FINAL
+  interviewType    String      @default("TECHNICAL")
   scheduledAt      DateTime
   durationMinutes  Int         @default(45)
   interviewerNames String?
   meetingUrl       String?
   location         String?
-  status           String      @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED, RESCHEDULED
+  status           String      @default("SCHEDULED")
   feedbackNotes    String?
   preparationNotes String?
   createdAt        DateTime    @default(now())
@@ -191,10 +193,10 @@ model Reminder {
   application   Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
   title         String
   description   String?
-  reminderType  String       @default("FOLLOW_UP") // FOLLOW_UP, ASSESSMENT_DEADLINE, INTERVIEW_PREP, APPLICATION_DEADLINE, CUSTOM
+  reminderType  String       @default("FOLLOW_UP")
   dueDate       DateTime
   isCompleted   Boolean      @default(false)
-  priority      String       @default("MEDIUM") // LOW, MEDIUM, HIGH
+  priority      String       @default("MEDIUM")
   createdAt     DateTime     @default(now())
 }
 
@@ -203,7 +205,7 @@ model Document {
   applicationId String
   application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   name          String
-  docType       String      @default("RESUME") // RESUME, COVER_LETTER, OFFER_LETTER, ASSESSMENT_FILE, PORTFOLIO, OTHER
+  docType       String      @default("RESUME")
   fileUrl       String
   fileSize      String      @default("500 KB")
   uploadedAt    DateTime    @default(now())
@@ -214,7 +216,7 @@ model ActivityLog {
   userId        String
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   applicationId String?
-  action        String   // STATUS_UPDATED, RESUME_CHANGED, INTERVIEW_ADDED, RECRUITER_UPDATED, APPLICATION_CREATED, NOTE_ADDED
+  action        String
   details       String
   timestamp     DateTime @default(now())
 }
@@ -223,8 +225,8 @@ model Goal {
   id                  String   @id @default(uuid())
   userId              String
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  month               Int      // 1 - 12
-  year                Int      // e.g. 2026
+  month               Int
+  year                Int
   targetApplications  Int      @default(40)
   currentApplications Int      @default(0)
   createdAt           DateTime @default(now())

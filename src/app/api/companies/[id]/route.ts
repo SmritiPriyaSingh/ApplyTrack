@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -16,7 +14,9 @@ export async function GET(
             applications: {
               include: {
                 resume: true,
+                recruiters: true,
                 interviews: true,
+                documents: true,
                 events: true,
               },
             },

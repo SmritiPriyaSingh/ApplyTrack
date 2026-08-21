@@ -8,16 +8,35 @@ import {
   Search, 
   Plus, 
   ChevronRight,
-  Briefcase
+  Briefcase,
+  GraduationCap,
+  FileText,
+  Trophy,
+  Globe,
+  Award,
+  Folder,
+  Layers
 } from 'lucide-react';
-import { HIRING_STAGES, WORK_MODES, DEFAULT_TAGS } from '@/lib/constants';
-import { formatDate, getStatusBadge } from '@/lib/utils';
+import { APPLICATION_TYPES, getAllStagesForType, getStageBadgeForType } from '@/lib/application-types';
+import { WORK_MODES, DEFAULT_TAGS } from '@/lib/constants';
+import { formatDate } from '@/lib/utils';
 import { NewApplicationModal } from '@/components/applications/new-application-modal';
+
+const TYPE_ICONS: Record<string, any> = {
+  Briefcase,
+  GraduationCap,
+  FileText,
+  Trophy,
+  Globe,
+  Award,
+  Folder,
+};
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<any[]>([]);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedTag, setSelectedTag] = useState<string>('');
   const [selectedWorkMode, setSelectedWorkMode] = useState<string>('');
@@ -27,6 +46,7 @@ export default function ApplicationsPage() {
   const fetchApplications = () => {
     let url = '/api/applications?';
     if (searchQuery) url += `query=${encodeURIComponent(searchQuery)}&`;
+    if (selectedType) url += `appType=${selectedType}&`;
     if (selectedStatus) url += `status=${selectedStatus}&`;
     if (selectedTag) url += `tag=${encodeURIComponent(selectedTag)}&`;
     if (selectedWorkMode) url += `workMode=${selectedWorkMode}&`;
@@ -42,13 +62,14 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     fetchApplications();
-  }, [searchQuery, selectedStatus, selectedTag, selectedWorkMode]);
+  }, [searchQuery, selectedType, selectedStatus, selectedTag, selectedWorkMode]);
 
   if (loading) {
-    return <div className="py-20 text-center text-[#BFC3C7] font-mono text-xs">Loading Job Applications Board...</div>;
+    return <div className="py-20 text-center text-[#BFC3C7] font-mono text-xs">Loading Career Workspace...</div>;
   }
 
-  const isFiltered = searchQuery || selectedStatus || selectedTag || selectedWorkMode;
+  const isFiltered = searchQuery || selectedType || selectedStatus || selectedTag || selectedWorkMode;
+  const currentStages = getAllStagesForType(selectedType || 'JOB');
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -56,10 +77,10 @@ export default function ApplicationsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
           <h1 className="text-xl font-bold text-[#EFECEC] tracking-tight">
-            Job Applications Board
+            Universal Career Workspace
           </h1>
           <p className="text-xs text-[#BFC3C7]">
-            Kanban workflow & career applications workspace.
+            Track Jobs, Competitive Exams, College Admissions, Hackathons/CTFs, Fellowships & Certifications.
           </p>
         </div>
 
@@ -91,12 +112,47 @@ export default function ApplicationsPage() {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center gap-1.5 transition"
+            className="px-3.5 py-1.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center gap-1.5 transition shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Application</span>
+            <span>Track New Opportunity</span>
           </button>
         </div>
+      </div>
+
+      {/* Application Type Quick Filter Strip */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <button
+          onClick={() => setSelectedType('')}
+          className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center gap-1.5 transition shrink-0 ${
+            selectedType === ''
+              ? 'bg-[#C3195D] text-[#EFECEC] border-[#C3195D]'
+              : 'bg-[#0B0B0B] text-[#BFC3C7] border-white/5 hover:text-[#EFECEC]'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>All Opportunities</span>
+        </button>
+
+        {Object.values(APPLICATION_TYPES).map((type) => {
+          const IconComponent = TYPE_ICONS[type.iconName] || Briefcase;
+          const isSelected = selectedType === type.id;
+
+          return (
+            <button
+              key={type.id}
+              onClick={() => setSelectedType(type.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium border flex items-center gap-1.5 transition shrink-0 ${
+                isSelected
+                  ? 'bg-[#C3195D] text-[#EFECEC] border-[#C3195D]'
+                  : 'bg-[#0B0B0B] text-[#BFC3C7] border-white/5 hover:text-[#EFECEC]'
+              }`}
+            >
+              <IconComponent className="w-3.5 h-3.5" />
+              <span>{type.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Empty State when no applications exist and no filters set */}
@@ -106,9 +162,9 @@ export default function ApplicationsPage() {
             <Briefcase className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[#EFECEC]">No Job Applications Tracked Yet</h3>
+            <h3 className="text-sm font-bold text-[#EFECEC]">No Opportunities Tracked Yet</h3>
             <p className="text-xs text-[#BFC3C7] mt-1 leading-relaxed">
-              Record job opportunities to view them across your Kanban workflow stages or switch to table view.
+              Track Jobs, Competitive Exams (GATE, CAT), College Admissions, Hackathons/CTFs, and Government Fellowships.
             </p>
           </div>
           <div className="flex items-center justify-center gap-3 pt-2">
@@ -117,7 +173,7 @@ export default function ApplicationsPage() {
               className="px-4 py-2 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl inline-flex items-center gap-1.5 transition shadow-sm"
             >
               <Plus className="w-4 h-4" />
-              <span>Add Your First Application</span>
+              <span>Track Your First Opportunity</span>
             </button>
           </div>
         </div>
@@ -129,7 +185,7 @@ export default function ApplicationsPage() {
               <Search className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
               <input
                 type="text"
-                placeholder="Search company, role, notes..."
+                placeholder="Search organization, title, notes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -142,8 +198,8 @@ export default function ApplicationsPage() {
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none"
               >
-                <option value="">All Hiring Stages</option>
-                {HIRING_STAGES.map((s) => (
+                <option value="">All Pipeline Stages</option>
+                {currentStages.map((s) => (
                   <option key={s.id} value={s.id} className="bg-[#1A1A1A] text-[#EFECEC]">
                     {s.label}
                   </option>
@@ -168,7 +224,7 @@ export default function ApplicationsPage() {
                 onChange={(e) => setSelectedWorkMode(e.target.value)}
                 className="px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none"
               >
-                <option value="">All Work Modes</option>
+                <option value="">All Modes</option>
                 {WORK_MODES.map((m) => (
                   <option key={m.id} value={m.id} className="bg-[#1A1A1A] text-[#EFECEC]">
                     {m.label}
@@ -178,10 +234,10 @@ export default function ApplicationsPage() {
             </div>
           </div>
 
-          {/* KANBAN VIEW */}
+          {/* KANBAN VIEW DYNAMIC PER APPLICATION TYPE */}
           {viewMode === 'kanban' && (
             <div className="flex gap-4 overflow-x-auto pb-6 min-h-[600px]">
-              {HIRING_STAGES.map((stage) => {
+              {currentStages.map((stage) => {
                 const columnApps = applications.filter((app) => app.status === stage.id);
 
                 return (
@@ -198,9 +254,10 @@ export default function ApplicationsPage() {
 
                     <div className="p-3 space-y-2.5 overflow-y-auto flex-1">
                       {columnApps.map((app) => {
-                        const companyName = app.jobPosting?.company?.name || 'Company';
-                        const role = app.jobPosting?.role || 'Role';
+                        const companyName = app.jobPosting?.company?.name || 'Organization';
+                        const role = app.jobPosting?.role || 'Opportunity';
                         const resumeTag = app.resume?.versionTag;
+                        const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
 
                         return (
                           <div
@@ -213,11 +270,9 @@ export default function ApplicationsPage() {
                                   {companyName}
                                 </h4>
                               </Link>
-                              {resumeTag && (
-                                <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#0B0B0B] text-[#62929A] border border-white/5">
-                                  {resumeTag}
-                                </span>
-                              )}
+                              <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#0B0B0B] text-[#62929A] border border-white/5">
+                                {typeConfig.label.split(' ')[0]}
+                              </span>
                             </div>
 
                             <p className="text-[11px] text-[#BFC3C7] mb-2 line-clamp-1">{role}</p>
@@ -248,22 +303,28 @@ export default function ApplicationsPage() {
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-white/5 text-[#BFC3C7] uppercase text-[10px] font-mono tracking-wider">
-                    <th className="pb-3 px-3">Company & Role</th>
-                    <th className="pb-3 px-3">Source</th>
-                    <th className="pb-3 px-3">Resume Version</th>
-                    <th className="pb-3 px-3">Status</th>
-                    <th className="pb-3 px-3">Applied Date</th>
+                    <th className="pb-3 px-3">Opportunity Category</th>
+                    <th className="pb-3 px-3">Organization & Title</th>
+                    <th className="pb-3 px-3">Source / Portal</th>
+                    <th className="pb-3 px-3">Current Pipeline Stage</th>
+                    <th className="pb-3 px-3">Date Registered</th>
                     <th className="pb-3 px-3 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {applications.map((app) => {
-                    const companyName = app.jobPosting?.company?.name || 'Company';
-                    const role = app.jobPosting?.role || 'Role';
-                    const badge = getStatusBadge(app.status);
+                    const companyName = app.jobPosting?.company?.name || 'Organization';
+                    const role = app.jobPosting?.role || 'Opportunity';
+                    const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
+                    const badge = getStageBadgeForType(app.appType, app.status);
 
                     return (
                       <tr key={app.id} className="hover:bg-[#1A1A1A]/50 transition">
+                        <td className="py-3 px-3">
+                          <span className="text-[11px] font-medium text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5">
+                            {typeConfig.label}
+                          </span>
+                        </td>
                         <td className="py-3 px-3">
                           <Link href={`/applications/${app.id}`} className="font-semibold text-[#EFECEC] hover:text-[#C3195D] transition">
                             {companyName}
@@ -271,9 +332,8 @@ export default function ApplicationsPage() {
                           <span className="text-[11px] text-[#BFC3C7] block">{role}</span>
                         </td>
                         <td className="py-3 px-3 text-[#BFC3C7]">{app.source}</td>
-                        <td className="py-3 px-3 font-mono text-[#62929A]">{app.resume?.versionTag || 'Standard'}</td>
                         <td className="py-3 px-3">
-                          <span className={`px-2 py-0.5 rounded border text-[10px] font-medium ${badge.bg}`}>
+                          <span className={`px-2 py-0.5 rounded border text-[10px] font-medium ${badge.color}`}>
                             {badge.label}
                           </span>
                         </td>
