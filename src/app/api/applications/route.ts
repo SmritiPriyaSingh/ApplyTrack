@@ -100,7 +100,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ applications, total: applications.length });
   } catch (error: any) {
     console.error('Failed to fetch applications:', error);
-    return NextResponse.json({ error: error?.message || 'Failed to fetch applications' }, { status: 500 });
+    console.error(error instanceof Error ? error.stack : error);
+
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : String(error),
+        code: error?.code || null,
+        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : null) : undefined,
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -223,16 +232,19 @@ export async function POST(request: Request) {
         update: { currentApplications: { increment: 1 } },
         create: { userId: user.id, month, year, targetApplications: 40, currentApplications: 1 },
       });
-    } catch (goalErr) {
+    } catch (goalErr: any) {
       console.warn('Non-critical goal increment warning:', goalErr);
     }
 
     return NextResponse.json({ success: true, application });
   } catch (error: any) {
     console.error('Failed to create application:', error);
+    console.error(error instanceof Error ? error.stack : error);
+
     return NextResponse.json(
       { 
-        error: error?.message || 'Failed to create application. Ensure database is writable or environment DATABASE_URL is configured.',
+        error: error instanceof Error ? error.message : String(error),
+        code: error?.code || null,
         details: String(error)
       }, 
       { status: 500 }
