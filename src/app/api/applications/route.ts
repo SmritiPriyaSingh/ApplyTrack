@@ -96,9 +96,9 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ applications, total: applications.length });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch applications:', error);
-    return NextResponse.json({ error: 'Failed to fetch applications' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Failed to fetch applications' }, { status: 500 });
   }
 }
 
@@ -106,6 +106,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const {
+      status,
       appType = 'JOB',
       companyName,
       role,
@@ -121,6 +122,7 @@ export async function POST(request: Request) {
       resumeId,
       notes,
       extraData,
+      applicationDate,
     } = body;
 
     let user = await prisma.user.findFirst();
@@ -132,7 +134,7 @@ export async function POST(request: Request) {
 
     // Get config for initial stage
     const typeConfig = getApplicationTypeConfig(appType);
-    const initialStatus = typeConfig.stages[0]?.id || 'APPLIED';
+    const initialStatus = status || typeConfig.stages[0]?.id || 'APPLIED';
 
     // 1. Find or create company/organization
     let company = await prisma.company.findFirst({
@@ -174,7 +176,7 @@ export async function POST(request: Request) {
         status: initialStatus,
         notes,
         extraData: extraData ? JSON.stringify(extraData) : null,
-        applicationDate: new Date(),
+        applicationDate: applicationDate ? new Date(applicationDate) : new Date(),
       },
     });
 
@@ -218,8 +220,14 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, application });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to create application:', error);
-    return NextResponse.json({ error: 'Failed to create application' }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: error?.message || 'Failed to create application. Ensure database is writable or environment DATABASE_URL is configured.',
+        details: String(error)
+      }, 
+      { status: 500 }
+    );
   }
 }

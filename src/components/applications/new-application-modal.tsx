@@ -201,13 +201,17 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.success) {
         if (onSuccess) onSuccess();
         onClose();
         window.location.reload();
+      } else {
+        alert(data.error || 'Failed to save application. Ensure database connection is configured.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert('Error saving application: ' + (err?.message || 'Network error'));
     } finally {
       setLoading(false);
     }
