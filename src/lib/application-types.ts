@@ -33,16 +33,6 @@ export const EXAM_APPLICATION_STATUSES = [
   { id: 'EXAM_ADMISSION', label: 'Admission Confirmed', color: 'bg-[#6CBF84]/40 text-[#EFECEC] border-[#6CBF84]' },
 ] as const;
 
-export const VISUAL_JOURNEY_STAGES = [
-  { id: 'EXAM_REGISTERED', label: 'Registered' },
-  { id: 'FEE_PAID', label: 'Fee Paid' },
-  { id: 'ADMIT_CARD_RELEASED', label: 'Admit Card' },
-  { id: 'EXAM_COMPLETED', label: 'Exam Day' },
-  { id: 'RESULT_DECLARED', label: 'Result' },
-  { id: 'COUNSELLING', label: 'Counselling' },
-  { id: 'EXAM_ADMISSION', label: 'Admission' },
-] as const;
-
 export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   JOB: {
     id: 'JOB',
@@ -235,14 +225,21 @@ export function getApplicationTypeConfig(typeId?: string): ApplicationTypeConfig
   return APPLICATION_TYPES[typeId || 'JOB'] || APPLICATION_TYPES.JOB;
 }
 
-export function getAllStagesForType(typeId?: string) {
+export function getAllStagesForType(typeId?: string, customStages?: { id: string; label: string; color: string }[]) {
   const config = getApplicationTypeConfig(typeId);
-  return config.stages;
+  const base = config.stages;
+  if (customStages && customStages.length > 0) {
+    // Avoid duplicate stage IDs
+    const baseIds = new Set(base.map((s) => s.id));
+    const uniqueCustom = customStages.filter((cs) => !baseIds.has(cs.id));
+    return [...base, ...uniqueCustom];
+  }
+  return base;
 }
 
-export function getStageBadgeForType(typeId: string | undefined, statusId: string) {
-  const config = getApplicationTypeConfig(typeId);
-  const found = config.stages.find((s) => s.id === statusId);
+export function getStageBadgeForType(typeId: string | undefined, statusId: string, customStages?: { id: string; label: string; color: string }[]) {
+  const stages = getAllStagesForType(typeId, customStages);
+  const found = stages.find((s) => s.id === statusId || s.label === statusId);
   if (found) return found;
-  return { id: statusId, label: statusId.replace(/_/g, ' '), color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' };
+  return { id: statusId, label: statusId.replace(/_/g, ' '), color: 'bg-[#C3195D]/20 text-[#C3195D] border-[#C3195D]/40 font-semibold' };
 }

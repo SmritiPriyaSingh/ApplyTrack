@@ -18,7 +18,9 @@ import {
   UploadCloud,
   CheckCircle2,
   FileCheck,
-  Trash2
+  Trash2,
+  Plus,
+  X
 } from 'lucide-react';
 import { APPLICATION_TYPES, getAllStagesForType, getStageBadgeForType } from '@/lib/application-types';
 import { formatDate } from '@/lib/utils';
@@ -33,6 +35,10 @@ export default function ApplicationDetailPage() {
   const [activeTab, setActiveTab] = useState<'journey' | 'timeline' | 'notes' | 'docs'>('journey');
   const [eventTitle, setEventTitle] = useState('');
   const [eventDesc, setEventDesc] = useState('');
+
+  // Custom process stage creation state
+  const [showAddStageModal, setShowAddStageModal] = useState(false);
+  const [newStageName, setNewStageName] = useState('');
 
   const fetchDetail = () => {
     fetch(`/api/applications/${id}`)
@@ -69,8 +75,6 @@ export default function ApplicationDetailPage() {
   const jobPosting = app.jobPosting;
   const resume = app.resume;
   const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
-  const currentBadge = getStageBadgeForType(app.appType, app.status);
-  const typeStages = getAllStagesForType(app.appType);
 
   let extraDataObj: Record<string, any> = {};
   if (app.extraData) {
@@ -78,6 +82,10 @@ export default function ApplicationDetailPage() {
       extraDataObj = JSON.parse(app.extraData);
     } catch (e) {}
   }
+
+  const customStages: { id: string; label: string; color: string }[] = extraDataObj.customStages || [];
+  const typeStages = getAllStagesForType(app.appType, customStages);
+  const currentBadge = getStageBadgeForType(app.appType, app.status, customStages);
 
   const handleUpdateStatus = async (newStatus: string) => {
     try {
@@ -87,6 +95,48 @@ export default function ApplicationDetailPage() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) fetchDetail();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddCustomStage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStageName.trim()) return;
+
+    const formattedId = `CUSTOM_STAGE_${Date.now()}`;
+    const newStage = {
+      id: formattedId,
+      label: newStageName.trim(),
+      color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D] font-bold',
+    };
+
+    const updatedCustomStages = [...customStages, newStage];
+    const updatedExtraData = {
+      ...extraDataObj,
+      customStages: updatedCustomStages,
+    };
+
+    try {
+      const res = await fetch(`/api/applications/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: formattedId,
+          extraData: updatedExtraData,
+          newEvent: {
+            title: `Added Custom Process Stage: ${newStageName.trim()}`,
+            description: `User created and stepped into custom stage: "${newStageName.trim()}".`,
+            eventType: 'NOTE',
+          },
+        }),
+      });
+
+      if (res.ok) {
+        setNewStageName('');
+        setShowAddStageModal(false);
+        fetchDetail();
+      }
     } catch (err) {
       console.error(err);
     }
@@ -191,17 +241,58 @@ export default function ApplicationDetailPage() {
         </button>
       </div>
 
-      {/* FEATURE 10: INTERACTIVE VISUAL JOURNEY PROGRESS TIMELINE BAR */}
+      {/* FEATURE 10 & CUSTOM STAGES: VISUAL JOURNEY TIMELINE STRIP */}
       <div className="bg-[#0B0B0B] border border-white/5 p-5 rounded-2xl space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider flex items-center gap-2 font-mono">
             <Layers className="w-4 h-4 text-[#C3195D]" />
             Visual Progress Journey
           </span>
-          <span className={`px-2.5 py-1 rounded text-xs font-semibold ${currentBadge.color}`}>
-            Current Stage: {currentBadge.label}
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAddStageModal(true)}
+              className="px-2.5 py-1 rounded-lg bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center gap-1 transition shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Add Custom Stage</span>
+            </button>
+            <span className={`px-2.5 py-1 rounded text-xs font-semibold ${currentBadge.color}`}>
+              {currentBadge.label}
+            </span>
+          </div>
         </div>
+
+        {/* INLINE ADD CUSTOM STAGE FORM MODAL */}
+        {showAddStageModal && (
+          <form onSubmit={handleAddCustomStage} className="bg-[#1A1A1A] p-3.5 rounded-xl border border-[#C3195D]/40 space-y-2 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-[#EFECEC]">Add Custom Process Stage</h4>
+              <button
+                type="button"
+                onClick={() => setShowAddStageModal(false)}
+                className="text-[#737373] hover:text-[#EFECEC]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                required
+                placeholder="e.g. System Design Round, Physical Fitness Test, Document Verification..."
+                value={newStageName}
+                onChange={(e) => setNewStageName(e.target.value)}
+                className="flex-1 px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+              />
+              <button
+                type="submit"
+                className="px-4 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-bold rounded-xl transition shrink-0"
+              >
+                Save & Set Active Stage
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Visual Journey Progression Flow */}
         <div className="flex items-center justify-between overflow-x-auto py-3 px-2 bg-[#1A1A1A] rounded-xl border border-white/5">
@@ -527,6 +618,13 @@ export default function ApplicationDetailPage() {
                 <span className="text-[#BFC3C7]">Title:</span>
                 <span className="font-semibold text-[#EFECEC]">{jobPosting?.role}</span>
               </div>
+
+              {extraDataObj.bond && extraDataObj.bond !== 'None' && (
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                  <span className="text-[#BFC3C7]">Service Bond:</span>
+                  <span className="font-mono text-[#E2B85C] font-semibold">{extraDataObj.bond}</span>
+                </div>
+              )}
 
               {extraDataObj.registrationNo && (
                 <div className="flex justify-between border-b border-white/5 pb-2">
