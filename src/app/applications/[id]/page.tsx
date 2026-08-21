@@ -20,7 +20,9 @@ import {
   FileCheck,
   Trash2,
   Plus,
-  X
+  X,
+  GraduationCap,
+  Award
 } from 'lucide-react';
 import { APPLICATION_TYPES, getAllStagesForType, getStageBadgeForType } from '@/lib/application-types';
 import { formatDate } from '@/lib/utils';
@@ -419,6 +421,56 @@ export default function ApplicationDetailPage() {
             {/* TAB 1: LIFECYCLE OVERVIEW CARDS */}
             {activeTab === 'journey' && (
               <div className="space-y-4">
+                {/* COLLEGE ADMISSION FEES & SCHOLARSHIP CARD */}
+                {(app.appType === 'COLLEGE' || extraDataObj.hasScholarship) && (
+                  <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-3">
+                    <span className="text-xs font-bold text-[#6CBF84] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
+                      <GraduationCap className="w-4 h-4 text-[#6CBF84]" />
+                      College Admission Fees & Scholarship Details
+                    </span>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                      <div>
+                        <span className="text-[10px] text-[#BFC3C7] block">Tuition / Fee</span>
+                        <span className="font-mono text-[#EFECEC] font-bold">{jobPosting?.package || 'N/A'}</span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] text-[#BFC3C7] block">Scholarship Granted?</span>
+                        <span
+                          className={`font-mono text-xs font-bold ${
+                            extraDataObj.hasScholarship === 'Yes'
+                              ? 'text-[#6CBF84]'
+                              : extraDataObj.hasScholarship === 'Applied'
+                              ? 'text-[#E2B85C]'
+                              : 'text-[#BFC3C7]'
+                          }`}
+                        >
+                          {extraDataObj.hasScholarship === 'Yes'
+                            ? '✓ Granted'
+                            : extraDataObj.hasScholarship === 'Applied'
+                            ? '🟡 Applied & Awaiting'
+                            : '○ No Scholarship'}
+                        </span>
+                      </div>
+
+                      {extraDataObj.scholarshipAmount && (
+                        <div>
+                          <span className="text-[10px] text-[#BFC3C7] block">Stipend / Amount</span>
+                          <span className="font-mono text-[#6CBF84] font-bold">{extraDataObj.scholarshipAmount}</span>
+                        </div>
+                      )}
+
+                      {extraDataObj.scholarshipName && (
+                        <div className="col-span-2 sm:col-span-3 pt-2 border-t border-white/5 flex items-center justify-between">
+                          <span className="text-[11px] text-[#BFC3C7]">Scholarship Name:</span>
+                          <span className="font-semibold text-[#EFECEC] font-mono">{extraDataObj.scholarshipName}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* 1. DEADLINES & DATES */}
                 {(extraDataObj.regCloseDate || extraDataObj.examDate) && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-2">
@@ -493,7 +545,7 @@ export default function ApplicationDetailPage() {
                 )}
 
                 {/* 3. FEE PAYMENT & TRANSACTION DETAILS */}
-                {(jobPosting?.package || extraDataObj.feeStatus) && (
+                {(jobPosting?.package || extraDataObj.feeStatus) && app.appType !== 'COLLEGE' && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-2">
                     <span className="text-xs font-bold text-[#6CBF84] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
                       <CreditCard className="w-3.5 h-3.5" />
@@ -659,9 +711,21 @@ export default function ApplicationDetailPage() {
                 <span className="font-semibold text-[#EFECEC]">{company?.name}</span>
               </div>
               <div className="flex justify-between border-b border-white/5 pb-2">
-                <span className="text-[#BFC3C7]">Title:</span>
+                <span className="text-[#BFC3C7]">Title / Degree:</span>
                 <span className="font-semibold text-[#EFECEC]">{jobPosting?.role}</span>
               </div>
+
+              <div className="flex justify-between border-b border-white/5 pb-2">
+                <span className="text-[#BFC3C7]">Date Applied:</span>
+                <span className="font-mono text-[#62929A] font-semibold">{formatDate(app.applicationDate)}</span>
+              </div>
+
+              {jobPosting?.location && (
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                  <span className="text-[#BFC3C7]">Campus / City:</span>
+                  <span className="font-semibold text-[#EFECEC]">{jobPosting.location}</span>
+                </div>
+              )}
 
               {extraDataObj.bond && extraDataObj.bond !== 'None' && (
                 <div className="flex justify-between border-b border-white/5 pb-2">

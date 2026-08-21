@@ -62,6 +62,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
     source: 'LinkedIn',
     resumeId: '',
     notes: '',
+    applicationDate: new Date().toISOString().split('T')[0],
   });
 
   // Type-specific extra fields state
@@ -70,6 +71,9 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   const [extraData, setExtraData] = useState<Record<string, any>>({
     bond: 'None',
     feeStatus: 'Pending',
+    hasScholarship: 'No',
+    scholarshipAmount: '',
+    scholarshipName: '',
     docsChecklist: {
       aadhaar: false,
       photo: false,
@@ -169,41 +173,6 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
         [key]: !prev.docsChecklist?.[key],
       },
     }));
-  };
-
-  const handleInlineResumeCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newResumeTitle.trim()) return;
-
-    setResumeCreating(true);
-    try {
-      const res = await fetch('/api/resumes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newResumeTitle.trim(),
-          versionTag: 'v1',
-          fileUrl: selectedFileData || selectedFileName || 'Uploaded Document',
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const created = data.resume;
-        setNewResumeTitle('');
-        setSelectedFileName('');
-        setSelectedFileData('');
-        setShowInlineResumeForm(false);
-        await fetchResumes();
-        if (created?.id) {
-          setFormData((prev) => ({ ...prev, resumeId: created.id }));
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setResumeCreating(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -360,6 +329,35 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
             </div>
 
+            {/* COMMON APPLICATION DATE FIELD */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-[#EFECEC] mb-1">Date of Applying</label>
+                <input
+                  type="date"
+                  value={formData.applicationDate}
+                  onChange={(e) => setFormData({ ...formData, applicationDate: e.target.value })}
+                  className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark] focus:outline-none focus:border-[#C3195D]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#EFECEC] mb-1">
+                  {selectedType === 'COLLEGE' ? 'Campus Location / City' : 'Location'}
+                </label>
+                <div className="relative">
+                  <MapPin className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    placeholder="e.g. Chennai, TN / San Francisco, CA"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* PRIMARY & SECONDARY FIELDS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -413,12 +411,77 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
             </div>
 
+            {/* TYPE-SPECIFIC SECTION: COLLEGE / UNIVERSITY ADMISSION (FEES & SCHOLARSHIP) */}
+            {selectedType === 'COLLEGE' && (
+              <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
+                <span className="text-[10px] uppercase font-bold text-[#6CBF84] tracking-wider block flex items-center gap-1.5 font-mono">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  <span>College Admission Fees & Scholarship Details</span>
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Annual Tuition / Admission Fee</label>
+                    <div className="relative">
+                      <DollarSign className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="e.g. ₹2,50,000 / yr or $45,000 / yr"
+                        value={formData.package}
+                        onChange={(e) => setFormData({ ...formData, package: e.target.value })}
+                        className="w-full pl-9 pr-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Receiving Scholarship / Fellowship?</label>
+                    <select
+                      value={extraData.hasScholarship || 'No'}
+                      onChange={(e) => setExtraData({ ...extraData, hasScholarship: e.target.value })}
+                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs font-semibold text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
+                    >
+                      <option value="No" className="bg-[#0B0B0B]">○ No Scholarship</option>
+                      <option value="Yes" className="bg-[#0B0B0B] text-[#6CBF84]">✓ Yes - Scholarship Granted</option>
+                      <option value="Applied" className="bg-[#0B0B0B] text-[#E2B85C]">🟡 Applied & Awaiting Result</option>
+                    </select>
+                  </div>
+                </div>
+
+                {(extraData.hasScholarship === 'Yes' || extraData.hasScholarship === 'Applied') && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/5">
+                    <div>
+                      <label className="block text-[11px] text-[#BFC3C7] mb-1">Scholarship Amount / Stipend</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. ₹12,400 / mo (GATE Stipend) / 50% Fee Waiver"
+                        value={extraData.scholarshipAmount || ''}
+                        onChange={(e) => setExtraData({ ...extraData, scholarshipAmount: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] text-[#BFC3C7] mb-1">Scholarship / Fellowship Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. MHRD GATE Stipend / Merit Scholarship"
+                        value={extraData.scholarshipName || ''}
+                        onChange={(e) => setExtraData({ ...extraData, scholarshipName: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* TYPE 1: JOB APPLICATION SPECIFIC CORPORATE FIELDS */}
             {selectedType === 'JOB' && (
               <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
                 <span className="text-[10px] uppercase font-bold text-[#C3195D] tracking-wider block flex items-center gap-1.5 font-mono">
                   <DollarSign className="w-3.5 h-3.5" />
-                  <span>Salary Package, Location, Work Mode & Service Bond</span>
+                  <span>Salary Package, Work Mode & Service Bond</span>
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -448,21 +511,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Job Location</label>
-                    <div className="relative">
-                      <MapPin className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
-                      <input
-                        type="text"
-                        placeholder="e.g. Indore, MP / San Francisco, CA"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full pl-9 pr-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                      />
-                    </div>
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] text-[#BFC3C7] mb-1">Work Mode (Hybrid / Onsite)</label>
                     <select
@@ -649,16 +698,6 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Preferred City</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Indore / Bhopal"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
                       <label className="block text-[10px] text-[#BFC3C7] mb-1">Allocated Center</label>
                       <input
                         type="text"
@@ -668,7 +707,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
                       />
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <label className="block text-[10px] text-[#BFC3C7] mb-1">Center Address</label>
                       <input
                         type="text"
