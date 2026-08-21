@@ -204,14 +204,23 @@ export function getApplicationTypeConfig(typeId?: string): ApplicationTypeConfig
 
 export function getAllStagesForType(typeId?: string, customStages?: { id: string; label: string; color: string }[]) {
   const config = getApplicationTypeConfig(typeId);
-  const base = config.stages;
+  const initialStage = config.stages[0]; // e.g. "Applied" or "Registered"
+  const finalStage = config.stages.find(s => s.id === 'JOINED' || s.id === 'EXAM_ADMISSION' || s.id === 'ENROLLED' || s.id === 'WINNER') || config.stages[config.stages.length - 1];
+
   if (customStages && customStages.length > 0) {
-    // Combine base and user custom stages cleanly
-    const baseIds = new Set(base.map((s) => s.id));
-    const uniqueCustom = customStages.filter((cs) => !baseIds.has(cs.id));
-    return [...base, ...uniqueCustom];
+    // When user creates custom process steps, insert them sequentially right after initial stage ("Applied")
+    const customList = customStages.map(cs => ({
+      id: cs.id,
+      label: cs.label,
+      color: cs.color || 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D] font-bold'
+    }));
+
+    const middleStages = customList.filter(c => c.id !== initialStage.id && c.id !== finalStage.id);
+
+    return [initialStage, ...middleStages, finalStage];
   }
-  return base;
+
+  return config.stages;
 }
 
 export function getStageBadgeForType(typeId: string | undefined, statusId: string, customStages?: { id: string; label: string; color: string }[]) {
@@ -224,7 +233,6 @@ export function getStageBadgeForType(typeId: string | undefined, statusId: strin
     if (customFound) return customFound;
   }
 
-  // Clean fallback label (do not show raw timestamp IDs)
-  const cleanLabel = statusId.startsWith('CUSTOM_STAGE_') ? 'User Custom Step' : statusId.replace(/_/g, ' ');
-  return { id: statusId, label: cleanLabel, color: 'bg-[#C3195D]/20 text-[#C3195D] border-[#C3195D]/40 font-semibold' };
+  const cleanLabel = statusId.startsWith('CUSTOM_STAGE_') ? statusId.replace('CUSTOM_STAGE_', '').replace(/_/g, ' ') : statusId.replace(/_/g, ' ');
+  return { id: statusId, label: cleanLabel, color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D] font-bold' };
 }
