@@ -421,8 +421,8 @@ export default function ApplicationDetailPage() {
             {/* TAB 1: LIFECYCLE OVERVIEW CARDS */}
             {activeTab === 'journey' && (
               <div className="space-y-4">
-                {/* COLLEGE ADMISSION FEES & SCHOLARSHIP CARD */}
-                {(app.appType === 'COLLEGE' || extraDataObj.hasScholarship) && (
+                {/* COLLEGE ADMISSION FEES & SCHOLARSHIP CARD (STRICTLY FOR COLLEGE OR GRANTED SCHOLARSHIP) */}
+                {(app.appType === 'COLLEGE' || extraDataObj.hasScholarship === 'Yes' || extraDataObj.hasScholarship === 'Applied') && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-3">
                     <span className="text-xs font-bold text-[#6CBF84] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
                       <GraduationCap className="w-4 h-4 text-[#6CBF84]" />
@@ -544,8 +544,8 @@ export default function ApplicationDetailPage() {
                   </div>
                 )}
 
-                {/* 3. FEE PAYMENT & TRANSACTION DETAILS */}
-                {(jobPosting?.package || extraDataObj.feeStatus) && app.appType !== 'COLLEGE' && (
+                {/* 3. FEE PAYMENT & TRANSACTION DETAILS (STRICTLY SHOWN ONLY IF PAID/PENDING FEE WAS SPECIFIED) */}
+                {(extraDataObj.feeStatus === 'Paid' || (extraDataObj.feeStatus === 'Pending' && extraDataObj.transactionId) || (jobPosting?.package && jobPosting.package !== 'N/A' && extraDataObj.feeStatus !== 'Free')) && app.appType !== 'COLLEGE' && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-2">
                     <span className="text-xs font-bold text-[#6CBF84] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
                       <CreditCard className="w-3.5 h-3.5" />
@@ -604,8 +604,8 @@ export default function ApplicationDetailPage() {
                   </div>
                 )}
 
-                {/* 5. DOCUMENTS CHECKLIST */}
-                {extraDataObj.docsChecklist && (
+                {/* 5. DOCUMENTS CHECKLIST (STRICTLY SHOWN ONLY IF EXAM OR USER TOGGLED A DOC) */}
+                {extraDataObj.docsChecklist && app.appType === 'EXAM' && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-3">
                     <span className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
                       <CheckSquare className="w-3.5 h-3.5 text-[#C3195D]" />
