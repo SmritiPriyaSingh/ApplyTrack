@@ -70,7 +70,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   const [appStatus, setAppStatus] = useState<string>('');
   const [extraData, setExtraData] = useState<Record<string, any>>({
     bond: 'None',
-    feeStatus: 'Paid',
+    feeStatus: 'Free',
     hasExam: 'No',
     examDate: '',
     hasScholarship: 'No',
@@ -124,9 +124,10 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
     // Set default status when type changes
     if (selectedType === 'EXAM') {
       setAppStatus('EXAM_REGISTERED');
-      setExtraData((prev) => ({ ...prev, hasExam: 'Yes' }));
+      setExtraData((prev) => ({ ...prev, hasExam: 'Yes', feeStatus: 'Paid' }));
     } else {
       setAppStatus(config.stages[0]?.id || 'APPLIED');
+      setExtraData((prev) => ({ ...prev, feeStatus: 'Free' }));
     }
   }, [selectedType]);
 
@@ -418,75 +419,79 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
             </div>
 
-            {/* UNIVERSAL FEE PAYMENT & EXAM DATE SECTION FOR ALL NON-JOB TYPES */}
+            {/* UNIVERSAL FEE PAYMENT & EXAM DETAILS SECTION */}
             {selectedType !== 'JOB' && selectedType !== 'COLLEGE' && (
               <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
                 <span className="text-[10px] uppercase font-bold text-[#6CBF84] tracking-wider block flex items-center gap-1.5 font-mono">
                   <CreditCard className="w-3.5 h-3.5" />
-                  <span>Fee Payment & Exam / Event Date Details</span>
+                  <span>Fee Payment & Exam Details</span>
                 </span>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-[10px] text-[#BFC3C7] mb-1">Fee / Amount Paid</label>
-                    <div className="relative">
-                      <DollarSign className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
-                      <input
-                        type="text"
-                        placeholder="e.g. ₹1,800 / $300 / Free"
-                        value={formData.package}
-                        onChange={(e) => setFormData({ ...formData, package: e.target.value })}
-                        className="w-full pl-9 pr-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
                     <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Status</label>
                     <select
-                      value={extraData.feeStatus || 'Paid'}
+                      value={extraData.feeStatus || 'Free'}
                       onChange={(e) => setExtraData({ ...extraData, feeStatus: e.target.value })}
                       className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs font-semibold text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
                     >
+                      <option value="Free" className="bg-[#0B0B0B]">Free / Waived</option>
                       <option value="Paid" className="bg-[#0B0B0B]">✓ Paid</option>
                       <option value="Pending" className="bg-[#0B0B0B]">○ Pending</option>
-                      <option value="Free" className="bg-[#0B0B0B]">Free / Waived</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Date</label>
-                    <input
-                      type="date"
-                      value={extraData.feePaymentDate || ''}
-                      onChange={(e) => setExtraData({ ...extraData, feePaymentDate: e.target.value })}
-                      className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
-                    />
-                  </div>
+                  {extraData.feeStatus !== 'Free' && (
+                    <>
+                      <div>
+                        <label className="block text-[10px] text-[#BFC3C7] mb-1">Fee / Amount Paid</label>
+                        <div className="relative">
+                          <DollarSign className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
+                          <input
+                            type="text"
+                            placeholder="e.g. ₹1,800 / $300"
+                            value={formData.package}
+                            onChange={(e) => setFormData({ ...formData, package: e.target.value })}
+                            className="w-full pl-9 pr-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
+                          />
+                        </div>
+                      </div>
 
-                  <div>
-                    <label className="block text-[10px] text-[#BFC3C7] mb-1">Transaction ID</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. TXN9841203"
-                      value={extraData.transactionId || ''}
-                      onChange={(e) => setExtraData({ ...extraData, transactionId: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Date</label>
+                        <input
+                          type="date"
+                          value={extraData.feePaymentDate || ''}
+                          onChange={(e) => setExtraData({ ...extraData, feePaymentDate: e.target.value })}
+                          className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] text-[#BFC3C7] mb-1">Transaction ID</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. TXN9841203"
+                          value={extraData.transactionId || ''}
+                          onChange={(e) => setExtraData({ ...extraData, transactionId: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                {/* OPTIONAL EXAM / EVENT DATE PICKER FOR CERTIFICATIONS, HACKATHONS & CUSTOM */}
+                {/* EXAM / COMPETITIVE EVALUATION QUESTION */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/5">
                   <div>
-                    <label className="block text-[10px] text-[#E2B85C] font-bold mb-1">Is there an Exam / Event Date?</label>
+                    <label className="block text-[10px] text-[#E2B85C] font-bold mb-1">Is this an Exam or Competitive Evaluation?</label>
                     <select
                       value={extraData.hasExam || 'No'}
                       onChange={(e) => setExtraData({ ...extraData, hasExam: e.target.value })}
                       className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
                     >
-                      <option value="No" className="bg-[#0B0B0B]">○ No Exam / Date</option>
-                      <option value="Yes" className="bg-[#0B0B0B] text-[#E2B85C]">✓ Yes - Scheduled Exam / Test Date</option>
+                      <option value="No" className="bg-[#0B0B0B]">○ No Exam</option>
+                      <option value="Yes" className="bg-[#0B0B0B] text-[#E2B85C]">✓ Yes - Has Scheduled Exam Date</option>
                     </select>
                   </div>
 
