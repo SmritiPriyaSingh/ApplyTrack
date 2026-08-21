@@ -315,8 +315,8 @@ export default function CareerCRMHomePage() {
             </div>
           )}
 
-          {/* MASTER DIRECTORY TABLE WITH VISUAL JOURNEY PROGRESS */}
-          <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-5 space-y-4">
+          {/* MASTER DIRECTORY WITH RESPONSIVE FLUID VIEW (CARDS ON MINIMIZED SCREENS, TABLE ON DESKTOP) */}
+          <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-4 sm:p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-[#C3195D]" />
@@ -327,7 +327,7 @@ export default function CareerCRMHomePage() {
 
               {/* Inline Filter Controls */}
               <div className="flex flex-wrap items-center gap-2">
-                <div className="relative w-48">
+                <div className="relative w-full sm:w-48">
                   <Search className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2" />
                   <input
                     type="text"
@@ -361,8 +361,8 @@ export default function CareerCRMHomePage() {
               </div>
             </div>
 
-            {/* High-density Universal Directory Table */}
-            <div className="overflow-x-auto">
+            {/* DESKTOP HIGH-DENSITY TABLE (Hidden on narrow/minimized screens) */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-white/5 text-[#BFC3C7] uppercase text-[10px] font-mono tracking-wider">
@@ -379,8 +379,6 @@ export default function CareerCRMHomePage() {
                     const role = app.jobPosting?.role || 'Opportunity';
                     const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
                     const badge = getStageBadgeForType(app.appType, app.status);
-
-                    // Compute current visual journey index
                     const currentStageIndex = typeConfig.stages.findIndex((s) => s.id === app.status);
 
                     return (
@@ -411,7 +409,6 @@ export default function CareerCRMHomePage() {
                           </span>
                         </td>
 
-                        {/* SIGNATURE VISUAL JOURNEY TIMELINE BAR */}
                         <td className="py-3 px-3">
                           <div className="flex items-center gap-1">
                             {typeConfig.stages.slice(0, 6).map((stage, idx) => {
@@ -472,6 +469,66 @@ export default function CareerCRMHomePage() {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* MINIMIZED & MOBILE ADAPTIVE CARD LIST (Visible on narrow/minimized windows < 1024px) */}
+            <div className="block lg:hidden space-y-3">
+              {filteredApps.slice(0, 15).map((app) => {
+                const companyName = app.jobPosting?.company?.name || 'Organization';
+                const role = app.jobPosting?.role || 'Opportunity';
+                const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
+                const badge = getStageBadgeForType(app.appType, app.status);
+
+                return (
+                  <div key={app.id} className="bg-[#1A1A1A] border border-white/5 p-4 rounded-xl space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[#0B0B0B] border border-white/5 flex items-center justify-center font-bold text-[#C3195D] text-xs shrink-0">
+                          {companyName.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <Link href={`/applications/${app.id}`} className="font-bold text-xs text-[#EFECEC] hover:text-[#C3195D] transition truncate block">
+                            {companyName}
+                          </Link>
+                          <span className="text-[11px] text-[#BFC3C7] truncate block">{role}</span>
+                        </div>
+                      </div>
+
+                      <span className="text-[9px] font-mono font-medium text-[#62929A] bg-[#0B0B0B] px-2 py-0.5 rounded border border-white/5 shrink-0">
+                        {typeConfig.label.split(' ')[0]}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${badge.color}`}>
+                        {badge.label}
+                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleQuickStatusUpdate(app.id, app.status, app.appType || 'JOB')}
+                          className="px-2.5 py-1 rounded-lg bg-[#0B0B0B] hover:bg-[#C3195D] text-[#EFECEC] text-[10px] font-bold flex items-center gap-1 border border-white/5 transition"
+                        >
+                          <span>Step Next</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                        <Link
+                          href={`/applications/${app.id}`}
+                          className="p-1.5 rounded-lg bg-[#0B0B0B] text-[#EFECEC] border border-white/5 transition"
+                        >
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteApplication(app.id, companyName)}
+                          className="p-1.5 rounded-lg bg-[#0B0B0B] text-[#D96C6C] border border-white/5 transition"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>

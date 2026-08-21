@@ -281,65 +281,117 @@ export default function ApplicationsPage() {
         </div>
       )}
 
-      {/* LIST TABLE VIEW */}
+      {/* LIST TABLE / CARD VIEW */}
       {viewMode === 'list' && (
-        <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-5 overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-white/5 text-[#BFC3C7] uppercase text-[10px] font-mono tracking-wider">
-                <th className="pb-2.5 px-3">Type</th>
-                <th className="pb-2.5 px-3">Organization</th>
-                <th className="pb-2.5 px-3">Opportunity Title</th>
-                <th className="pb-2.5 px-3">Status</th>
-                <th className="pb-2.5 px-3">Date</th>
-                <th className="pb-2.5 px-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {applications.map((app) => {
-                const companyName = app.jobPosting?.company?.name || 'Organization';
-                const role = app.jobPosting?.role || 'Opportunity';
-                const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
-                const badge = getStageBadgeForType(app.appType, app.status);
+        <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-4 sm:p-5">
+          {/* DESKTOP TABLE VIEW (Visible >= 1024px) */}
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-white/5 text-[#BFC3C7] uppercase text-[10px] font-mono tracking-wider">
+                  <th className="pb-2.5 px-3">Type</th>
+                  <th className="pb-2.5 px-3">Organization</th>
+                  <th className="pb-2.5 px-3">Opportunity Title</th>
+                  <th className="pb-2.5 px-3">Status</th>
+                  <th className="pb-2.5 px-3">Date</th>
+                  <th className="pb-2.5 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {applications.map((app) => {
+                  const companyName = app.jobPosting?.company?.name || 'Organization';
+                  const role = app.jobPosting?.role || 'Opportunity';
+                  const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
+                  const badge = getStageBadgeForType(app.appType, app.status);
 
-                return (
-                  <tr key={app.id} className="hover:bg-[#1A1A1A]/60 transition">
-                    <td className="py-3 px-3">
-                      <span className="text-[10px] font-medium text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5 font-mono">
+                  return (
+                    <tr key={app.id} className="hover:bg-[#1A1A1A]/60 transition">
+                      <td className="py-3 px-3">
+                        <span className="text-[10px] font-medium text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5 font-mono">
+                          {typeConfig.label}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 font-semibold text-[#EFECEC]">{companyName}</td>
+                      <td className="py-3 px-3 text-[#BFC3C7]">{role}</td>
+                      <td className="py-3 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${badge.color}`}>
+                          {badge.label}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-[#737373] font-mono">{formatDate(app.applicationDate)}</td>
+                      <td className="py-3 px-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/applications/${app.id}`}
+                            className="px-2.5 py-1 rounded-lg bg-[#1A1A1A] hover:bg-[#C3195D] text-[#EFECEC] text-[10px] font-medium transition flex items-center gap-1"
+                          >
+                            <span>Open</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteApplication(app.id, companyName)}
+                            title="Delete Application Entry"
+                            className="p-1 rounded-lg text-[#D96C6C]/80 hover:text-[#D96C6C] hover:bg-[#D96C6C]/10 transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* MINIMIZED / MOBILE ADAPTIVE CARD LIST (Visible < 1024px) */}
+          <div className="block lg:hidden space-y-3">
+            {applications.map((app) => {
+              const companyName = app.jobPosting?.company?.name || 'Organization';
+              const role = app.jobPosting?.role || 'Opportunity';
+              const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
+              const badge = getStageBadgeForType(app.appType, app.status);
+
+              return (
+                <div key={app.id} className="bg-[#1A1A1A] border border-white/5 p-4 rounded-xl space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-mono text-[#62929A] bg-[#0B0B0B] px-2 py-0.5 rounded border border-white/5 inline-block mb-1">
                         {typeConfig.label}
                       </span>
-                    </td>
-                    <td className="py-3 px-3 font-semibold text-[#EFECEC]">{companyName}</td>
-                    <td className="py-3 px-3 text-[#BFC3C7]">{role}</td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${badge.color}`}>
-                        {badge.label}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-[#737373] font-mono">{formatDate(app.applicationDate)}</td>
-                    <td className="py-3 px-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/applications/${app.id}`}
-                          className="px-2.5 py-1 rounded-lg bg-[#1A1A1A] hover:bg-[#C3195D] text-[#EFECEC] text-[10px] font-medium transition flex items-center gap-1"
-                        >
-                          <span>Open</span>
-                          <ArrowUpRight className="w-3 h-3" />
-                        </Link>
-                        <button
-                          onClick={() => handleDeleteApplication(app.id, companyName)}
-                          title="Delete Application Entry"
-                          className="p-1 rounded-lg text-[#D96C6C]/80 hover:text-[#D96C6C] hover:bg-[#D96C6C]/10 transition"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <Link href={`/applications/${app.id}`} className="font-bold text-xs text-[#EFECEC] hover:text-[#C3195D] transition block">
+                        {companyName}
+                      </Link>
+                      <span className="text-[11px] text-[#BFC3C7] block">{role}</span>
+                    </div>
+
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-semibold shrink-0 ${badge.color}`}>
+                      {badge.label}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-[#737373]">
+                    <span className="font-mono">{formatDate(app.applicationDate)}</span>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/applications/${app.id}`}
+                        className="px-2.5 py-1 rounded-lg bg-[#0B0B0B] hover:bg-[#C3195D] text-[#EFECEC] font-bold transition flex items-center gap-1 border border-white/5"
+                      >
+                        <span>Open</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteApplication(app.id, companyName)}
+                        className="p-1.5 rounded-lg bg-[#0B0B0B] text-[#D96C6C] border border-white/5 transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
