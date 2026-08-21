@@ -170,8 +170,8 @@ export default function ApplicationsPage() {
               >
                 <option value="">All Work Modes</option>
                 {WORK_MODES.map((m) => (
-                  <option key={m} value={m} className="bg-[#1A1A1A] text-[#EFECEC]">
-                    {m}
+                  <option key={m.id} value={m.id} className="bg-[#1A1A1A] text-[#EFECEC]">
+                    {m.label}
                   </option>
                 ))}
               </select>

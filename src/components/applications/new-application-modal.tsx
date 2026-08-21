@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { X, Building2, Briefcase, DollarSign, MapPin, FileText, Plus, Check } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Building2, Briefcase, DollarSign, MapPin, FileText, Plus, Check, UploadCloud } from 'lucide-react';
 import { WORK_MODES, JOB_TYPES, SOURCES } from '@/lib/constants';
 
 interface NewApplicationModalProps {
@@ -31,12 +31,12 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   const [loading, setLoading] = useState(false);
   const [showInlineResumeForm, setShowInlineResumeForm] = useState(false);
 
-  // Inline resume form state
+  // Streamlined inline resume form state
   const [newResumeTitle, setNewResumeTitle] = useState('');
-  const [newResumeVersionTag, setNewResumeVersionTag] = useState('');
-  const [newResumeTargetRole, setNewResumeTargetRole] = useState('');
-  const [newResumeFileUrl, setNewResumeFileUrl] = useState('');
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const [selectedFileData, setSelectedFileData] = useState('');
   const [resumeCreating, setResumeCreating] = useState(false);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const fetchResumes = () => {
     fetch('/api/resumes')
@@ -44,7 +44,6 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
       .then((data) => {
         if (data.resumes) {
           setResumes(data.resumes);
-          // If no resume selected yet and resumes exist, pick the first one
           if (data.resumes.length > 0 && !formData.resumeId) {
             setFormData((prev) => ({ ...prev, resumeId: data.resumes[0].id }));
           }
@@ -59,21 +58,44 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
   if (!isOpen) return null;
 
+  const handleDocumentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check size limit (e.g. 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size should be less than 10MB");
+      return;
+    }
+
+    const cleanTitle = file.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
+    setSelectedFileName(file.name);
+    if (!newResumeTitle) {
+      setNewResumeTitle(cleanTitle);
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setSelectedFileData(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleInlineResumeCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newResumeTitle.trim()) return;
 
     setResumeCreating(true);
     try {
-      const tag = newResumeVersionTag.trim() || 'v1';
       const res = await fetch('/api/resumes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newResumeTitle.trim(),
-          versionTag: tag,
-          targetRole: newResumeTargetRole.trim(),
-          fileUrl: newResumeFileUrl.trim(),
+          versionTag: 'v1',
+          fileUrl: selectedFileData || selectedFileName || 'Uploaded Document',
         }),
       });
 
@@ -81,9 +103,8 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
         const data = await res.json();
         const created = data.resume;
         setNewResumeTitle('');
-        setNewResumeVersionTag('');
-        setNewResumeTargetRole('');
-        setNewResumeFileUrl('');
+        setSelectedFileName('');
+        setSelectedFileData('');
         setShowInlineResumeForm(false);
         await fetchResumes();
         if (created?.id) {
@@ -192,7 +213,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                 className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
               >
                 {WORK_MODES.map((mode) => (
-                  <option key={mode} value={mode} className="bg-[#0B0B0B] text-[#EFECEC]">{mode}</option>
+                  <option key={mode.id} value={mode.id} className="bg-[#0B0B0B] text-[#EFECEC]">{mode.label}</option>
                 ))}
               </select>
             </div>
@@ -205,7 +226,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                 className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
               >
                 {JOB_TYPES.map((type) => (
-                  <option key={type} value={type} className="bg-[#0B0B0B] text-[#EFECEC]">{type}</option>
+                  <option key={type.id} value={type.id} className="bg-[#0B0B0B] text-[#EFECEC]">{type.label}</option>
                 ))}
               </select>
             </div>
@@ -266,7 +287,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     className="text-[10px] text-[#C3195D] hover:underline flex items-center gap-0.5"
                   >
                     <Plus className="w-3 h-3" />
-                    <span>Add New</span>
+                    <span>Upload New</span>
                   </button>
                 )}
               </div>
@@ -283,7 +304,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     <option value="">Unassigned (Select Resume)</option>
                     {resumes.map((r) => (
                       <option key={r.id} value={r.id} className="bg-[#0B0B0B] text-[#EFECEC]">
-                        {r.title} {r.versionTag ? `(${r.versionTag})` : ''}
+                        {r.title}
                       </option>
                     ))}
                   </select>
@@ -295,23 +316,23 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   <button
                     type="button"
                     onClick={() => setShowInlineResumeForm(true)}
-                    className="px-3 py-1 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-[11px] font-medium rounded-lg inline-flex items-center gap-1 transition"
+                    className="px-3.5 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-[11px] font-medium rounded-lg inline-flex items-center gap-1.5 transition shadow-sm"
                   >
-                    <Plus className="w-3 h-3" />
-                    <span>Upload Your First Resume</span>
+                    <UploadCloud className="w-3.5 h-3.5" />
+                    <span>Upload Resume Document</span>
                   </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Inline Resume Upload / Register Form */}
+          {/* Streamlined Inline Resume Upload Form with Native File Picker */}
           {showInlineResumeForm && (
             <div className="bg-[#0B0B0B] border border-[#C3195D]/40 p-4 rounded-xl space-y-3 animate-fade-in">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-[#EFECEC] flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5 text-[#C3195D]" />
-                  <span>Register Resume Version</span>
+                  <span>Upload Resume Document from Device</span>
                 </h4>
                 <button
                   type="button"
@@ -322,51 +343,36 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] text-[#BFC3C7] mb-1">Friendly Display Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. SOC Resume, Developer Resume"
-                    value={newResumeTitle}
-                    onChange={(e) => setNewResumeTitle(e.target.value)}
-                    className="w-full px-3 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] text-[#BFC3C7] mb-1">Version Tag (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. v1, v2, SOC-v1"
-                    value={newResumeVersionTag}
-                    onChange={(e) => setNewResumeVersionTag(e.target.value)}
-                    className="w-full px-3 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                  />
-                </div>
+              {/* Native Document File Selector Button */}
+              <div className="flex flex-col items-center justify-center border border-dashed border-white/10 hover:border-[#C3195D]/50 bg-[#1A1A1A] p-3.5 rounded-xl text-center cursor-pointer transition"
+                onClick={() => docInputRef.current?.click()}
+              >
+                <UploadCloud className="w-5 h-5 text-[#C3195D] mb-1" />
+                <span className="text-xs font-medium text-[#EFECEC]">
+                  {selectedFileName ? `Selected: ${selectedFileName}` : 'Choose Resume File (.pdf, .docx)'}
+                </span>
+                <span className="text-[10px] text-[#737373] mt-0.5">Click to browse your documents</span>
+
+                <input
+                  type="file"
+                  ref={docInputRef}
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleDocumentFileChange}
+                  className="hidden"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[10px] text-[#BFC3C7] mb-1">Target Role (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Blue Team / Full Stack"
-                    value={newResumeTargetRole}
-                    onChange={(e) => setNewResumeTargetRole(e.target.value)}
-                    className="w-full px-3 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] text-[#BFC3C7] mb-1">File Link / URL (Optional)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. https://drive.google.com/..."
-                    value={newResumeFileUrl}
-                    onChange={(e) => setNewResumeFileUrl(e.target.value)}
-                    className="w-full px-3 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                  />
-                </div>
+              {/* Single Clean Title Input Field */}
+              <div>
+                <label className="block text-[11px] text-[#BFC3C7] mb-1">Resume Name / Label *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. SOC Resume, DevOps Resume"
+                  value={newResumeTitle}
+                  onChange={(e) => setNewResumeTitle(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-1">
@@ -374,10 +380,10 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   type="button"
                   onClick={handleInlineResumeCreate}
                   disabled={resumeCreating || !newResumeTitle.trim()}
-                  className="px-3 py-1 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-lg flex items-center gap-1 disabled:opacity-50"
+                  className="px-3.5 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl flex items-center gap-1.5 transition disabled:opacity-50"
                 >
-                  <Check className="w-3 h-3" />
-                  <span>{resumeCreating ? 'Saving...' : 'Save & Select Resume'}</span>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{resumeCreating ? 'Uploading...' : 'Upload & Attach Resume'}</span>
                 </button>
               </div>
             </div>

@@ -12,12 +12,23 @@ export const HIRING_STAGES = [
   { id: 'GHOSTED', label: 'Ghosted', color: 'bg-[#0A0A0A] text-[#737373] border-white/5' },
 ] as const;
 
-export const WORK_MODES = ['REMOTE', 'HYBRID', 'ON_SITE'] as const;
-export const JOB_TYPES = ['FULL_TIME', 'INTERNSHIP', 'CONTRACT', 'PART_TIME'] as const;
+export const WORK_MODES = [
+  { id: 'REMOTE', label: 'Remote' },
+  { id: 'HYBRID', label: 'Hybrid' },
+  { id: 'ON_SITE', label: 'On Site' },
+] as const;
+
+export const JOB_TYPES = [
+  { id: 'FULL_TIME', label: 'Full Time' },
+  { id: 'INTERNSHIP', label: 'Internship' },
+  { id: 'CONTRACT', label: 'Contract' },
+  { id: 'PART_TIME', label: 'Part Time' },
+] as const;
 
 export const SOURCES = [
   'LinkedIn',
   'Company Website',
+  'YouTube',
   'Referral',
   'Campus Placement',
   'Indeed',

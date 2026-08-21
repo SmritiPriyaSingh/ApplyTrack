@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { FileText, Plus, ExternalLink, UploadCloud } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { FileText, Plus, ExternalLink, UploadCloud, Check } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
 export default function ResumesPage() {
   const [resumes, setResumes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('');
-  const [versionTag, setVersionTag] = useState('');
-  const [fileUrl, setFileUrl] = useState('');
-  const [targetRole, setTargetRole] = useState('');
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const [selectedFileData, setSelectedFileData] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const fetchResumes = () => {
     fetch('/api/resumes')
@@ -27,23 +27,49 @@ export default function ResumesPage() {
     fetchResumes();
   }, []);
 
+  const handleDocumentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("File size should be less than 10MB");
+      return;
+    }
+
+    const cleanTitle = file.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ");
+    setSelectedFileName(file.name);
+    if (!title) {
+      setTitle(cleanTitle);
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setSelectedFileData(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title) return;
+    if (!title.trim()) return;
 
     try {
-      const tag = versionTag.trim() || 'v1';
       const res = await fetch('/api/resumes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, versionTag: tag, fileUrl, targetRole }),
+        body: JSON.stringify({
+          title: title.trim(),
+          versionTag: 'v1',
+          fileUrl: selectedFileData || selectedFileName || 'Uploaded Document',
+        }),
       });
 
       if (res.ok) {
         setTitle('');
-        setVersionTag('');
-        setFileUrl('');
-        setTargetRole('');
+        setSelectedFileName('');
+        setSelectedFileData('');
         setShowAddForm(false);
         fetchResumes();
       }
@@ -52,15 +78,19 @@ export default function ResumesPage() {
     }
   };
 
+  if (loading) {
+    return <div className="py-20 text-center text-[#BFC3C7] font-mono text-xs">Loading Resume Vault...</div>;
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
           <h1 className="text-xl font-bold text-[#EFECEC] tracking-tight">
-            Resume Version Vault
+            Resume Vault
           </h1>
           <p className="text-xs text-[#BFC3C7]">
-            Track resume performance and application response conversion per friendly version.
+            Upload and manage your resume documents to track application response rates.
           </p>
         </div>
 
@@ -68,63 +98,49 @@ export default function ResumesPage() {
           onClick={() => setShowAddForm(!showAddForm)}
           className="px-3.5 py-1.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center gap-1.5 transition self-start md:self-auto shadow-sm"
         >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Upload New Resume</span>
+          <UploadCloud className="w-3.5 h-3.5" />
+          <span>Upload Resume Document</span>
         </button>
       </div>
 
       {showAddForm && (
-        <form onSubmit={handleCreate} className="bg-[#0B0B0B] border border-[#C3195D]/40 p-5 rounded-2xl space-y-4 max-w-xl animate-fade-in">
+        <form onSubmit={handleCreate} className="bg-[#0B0B0B] border border-[#C3195D]/40 p-5 rounded-2xl space-y-4 max-w-lg animate-fade-in">
           <div className="flex items-center gap-2 pb-2 border-b border-white/5">
             <FileText className="w-4 h-4 text-[#C3195D]" />
-            <h3 className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider">Register Resume Version</h3>
+            <h3 className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider">Upload Resume Document</h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[11px] text-[#BFC3C7] mb-1">Friendly Display Name *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. SOC Resume, Developer Resume"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] text-[#BFC3C7] mb-1">Version Tag (Optional)</label>
-              <input
-                type="text"
-                placeholder="e.g. v1, v2, SOC-v1"
-                value={versionTag}
-                onChange={(e) => setVersionTag(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-              />
-            </div>
+          {/* Native Document File Selector Button */}
+          <div
+            className="flex flex-col items-center justify-center border border-dashed border-white/10 hover:border-[#C3195D]/50 bg-[#1A1A1A] p-4 rounded-xl text-center cursor-pointer transition"
+            onClick={() => docInputRef.current?.click()}
+          >
+            <UploadCloud className="w-6 h-6 text-[#C3195D] mb-1.5" />
+            <span className="text-xs font-medium text-[#EFECEC]">
+              {selectedFileName ? `Selected: ${selectedFileName}` : 'Choose Resume File from Computer (.pdf, .docx)'}
+            </span>
+            <span className="text-[10px] text-[#737373] mt-0.5">Click to select document</span>
+
+            <input
+              type="file"
+              ref={docInputRef}
+              accept=".pdf,.doc,.docx"
+              onChange={handleDocumentFileChange}
+              className="hidden"
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[11px] text-[#BFC3C7] mb-1">Target Role (Optional)</label>
-              <input
-                type="text"
-                placeholder="e.g. Blue Team / Full Stack"
-                value={targetRole}
-                onChange={(e) => setTargetRole(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] text-[#BFC3C7] mb-1">File Link / URL (Optional)</label>
-              <input
-                type="text"
-                placeholder="e.g. https://drive.google.com/..."
-                value={fileUrl}
-                onChange={(e) => setFileUrl(e.target.value)}
-                className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-              />
-            </div>
+          {/* Single Clean Title Input Field */}
+          <div>
+            <label className="block text-[11px] text-[#BFC3C7] mb-1">Resume Name / Display Title *</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. SOC Analyst Resume, DevOps Resume"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-3.5 py-2 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
@@ -137,9 +153,11 @@ export default function ResumesPage() {
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl transition"
+              disabled={!title.trim()}
+              className="px-4 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl transition flex items-center gap-1.5 disabled:opacity-50"
             >
-              Save Version
+              <Check className="w-3.5 h-3.5" />
+              <span>Save Resume</span>
             </button>
           </div>
         </form>
@@ -168,16 +186,12 @@ export default function ResumesPage() {
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-[#EFECEC]">{resume.title}</h3>
-                        <span className="text-[10px] font-mono text-[#C3195D] font-bold">{resume.versionTag}</span>
+                        <span className="text-[10px] font-mono text-[#62929A]">Document Uploaded</span>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#BFC3C7] mb-3">
-                    Target Role: <span className="text-[#EFECEC] font-medium">{resume.targetRole || 'General'}</span>
-                  </p>
-
-                  <div className="bg-[#1A1A1A] p-3 rounded-xl border border-white/5 space-y-1.5">
+                  <div className="bg-[#1A1A1A] p-3 rounded-xl border border-white/5 space-y-1.5 mt-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-[#BFC3C7]">Applications Linked:</span>
                       <span className="font-mono font-bold text-[#EFECEC]">{totalApps}</span>
@@ -190,15 +204,14 @@ export default function ResumesPage() {
                 </div>
 
                 <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-[#737373]">
-                  <span>Created: {formatDate(resume.createdAt)}</span>
-                  {resume.fileUrl && (
+                  <span>Uploaded: {formatDate(resume.createdAt)}</span>
+                  {resume.fileUrl && resume.fileUrl.startsWith('data:') && (
                     <a
                       href={resume.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                      download={`${resume.title}.pdf`}
                       className="text-[#62929A] hover:underline flex items-center gap-1"
                     >
-                      <span>View File</span>
+                      <span>Download File</span>
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
@@ -216,14 +229,14 @@ export default function ResumesPage() {
           <div>
             <h3 className="text-sm font-bold text-[#EFECEC]">No Resumes in Your Vault</h3>
             <p className="text-xs text-[#BFC3C7] mt-1">
-              Upload your resume versions with friendly display names (e.g. &quot;SOC Resume&quot;, &quot;Developer Resume&quot;) to track application ROI per version.
+              Upload your resume documents directly from your computer (.pdf, .docx) to track application response rates.
             </p>
           </div>
           <button
             onClick={() => setShowAddForm(true)}
             className="px-4 py-2 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl inline-flex items-center gap-1.5 transition shadow-sm"
           >
-            <Plus className="w-4 h-4" />
+            <UploadCloud className="w-4 h-4" />
             <span>Upload Your First Resume</span>
           </button>
         </div>
