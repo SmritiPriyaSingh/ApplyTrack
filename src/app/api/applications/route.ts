@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
-import { prisma, ensureDbInitialized } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { getApplicationTypeConfig } from '@/lib/application-types';
 
 export async function GET(request: Request) {
   try {
-    await ensureDbInitialized();
-
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || '';
     const status = searchParams.get('status');
@@ -98,28 +96,16 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({ applications, total: applications.length });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch applications:', error);
-    console.error(error instanceof Error ? error.stack : error);
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : String(error),
-        code: error?.code || null,
-        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : null) : undefined,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch applications' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    await ensureDbInitialized();
-
     const body = await request.json();
     const {
-      status,
       appType = 'JOB',
       companyName,
       role,
@@ -135,19 +121,18 @@ export async function POST(request: Request) {
       resumeId,
       notes,
       extraData,
-      applicationDate,
     } = body;
 
     let user = await prisma.user.findFirst();
     if (!user) {
       user = await prisma.user.create({
-        data: { id: 'user_default_smriti', name: 'Smriti Priya Singh', email: 'smriti@example.com' },
+        data: { name: 'Smriti Priya Singh', email: 'smriti@example.com' },
       });
     }
 
     // Get config for initial stage
     const typeConfig = getApplicationTypeConfig(appType);
-    const initialStatus = status || typeConfig.stages[0]?.id || 'APPLIED';
+    const initialStatus = typeConfig.stages[0]?.id || 'APPLIED';
 
     // 1. Find or create company/organization
     let company = await prisma.company.findFirst({
@@ -189,7 +174,7 @@ export async function POST(request: Request) {
         status: initialStatus,
         notes,
         extraData: extraData ? JSON.stringify(extraData) : null,
-        applicationDate: applicationDate ? new Date(applicationDate) : new Date(),
+        applicationDate: new Date(),
       },
     });
 
@@ -223,31 +208,18 @@ export async function POST(request: Request) {
       },
     });
 
-    // 7. Increment goal count (Non-blocking safe wrapper)
-    try {
-      const month = new Date().getMonth() + 1;
-      const year = new Date().getFullYear();
-      await prisma.goal.upsert({
-        where: { userId_month_year: { userId: user.id, month, year } },
-        update: { currentApplications: { increment: 1 } },
-        create: { userId: user.id, month, year, targetApplications: 40, currentApplications: 1 },
-      });
-    } catch (goalErr: any) {
-      console.warn('Non-critical goal increment warning:', goalErr);
-    }
+    // 7. Increment goal count
+    const month = new Date().getMonth() + 1;
+    const year = new Date().getFullYear();
+    await prisma.goal.upsert({
+      where: { userId_month_year: { userId: user.id, month, year } },
+      update: { currentApplications: { increment: 1 } },
+      create: { userId: user.id, month, year, targetApplications: 40, currentApplications: 1 },
+    });
 
     return NextResponse.json({ success: true, application });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create application:', error);
-    console.error(error instanceof Error ? error.stack : error);
-
-    return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : String(error),
-        code: error?.code || null,
-        details: String(error)
-      }, 
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create application' }, { status: 500 });
   }
 }

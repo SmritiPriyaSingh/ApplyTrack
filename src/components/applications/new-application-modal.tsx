@@ -181,32 +181,13 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[ApplyTrack Submit] Form submitted:', { formData, selectedType, appStatus });
-
-    const primaryVal = formData.companyName.trim();
-    const secondaryVal = formData.role.trim();
-
-    if (!primaryVal || !secondaryVal) {
-      alert(`Please fill in required fields:\n- ${config.fields.primaryLabel}\n- ${config.fields.secondaryLabel}`);
-      return;
-    }
+    if (!formData.companyName || !formData.role) return;
 
     setLoading(true);
     try {
       const payload = {
         appType: selectedType,
-        companyName: primaryVal,
-        role: secondaryVal,
-        department: formData.department,
-        workMode: formData.workMode,
-        jobType: formData.jobType,
-        location: formData.location,
-        package: formData.package,
-        jobUrl: formData.jobUrl,
-        source: formData.source,
-        resumeId: formData.resumeId,
-        notes: formData.notes,
-        applicationDate: formData.applicationDate,
+        ...formData,
         status: appStatus,
         extraData: {
           ...extraData,
@@ -214,27 +195,19 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
         },
       };
 
-      console.log('[ApplyTrack API Call] POST /api/applications payload:', payload);
-
       const res = await fetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      console.log('[ApplyTrack API Response]:', res.status, data);
-
-      if (res.ok && data.success) {
+      if (res.ok) {
         if (onSuccess) onSuccess();
         onClose();
         window.location.reload();
-      } else {
-        alert(`Failed to save application: ${data.error || 'Unknown server error'}`);
       }
-    } catch (err: any) {
-      console.error('[ApplyTrack Submit Error]:', err);
-      alert('Error saving application: ' + (err?.message || 'Network error'));
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }

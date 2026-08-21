@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
-import { prisma, ensureDbInitialized } from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { differenceInDays } from 'date-fns';
 
 export async function GET() {
   try {
-    await ensureDbInitialized();
-
     const user = await prisma.user.findFirst();
-    if (!user) return NextResponse.json({ analytics: null, summary: null });
+    if (!user) return NextResponse.json({ analytics: null });
 
     const applications = await prisma.application.findMany({
       where: { userId: user.id },
@@ -135,17 +133,8 @@ export async function GET() {
       locationBreakdown,
       resumePerformance,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to compute analytics:', error);
-    console.error(error instanceof Error ? error.stack : error);
-
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : String(error),
-        code: error?.code || null,
-        stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : null) : undefined,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to compute analytics' }, { status: 500 });
   }
 }
