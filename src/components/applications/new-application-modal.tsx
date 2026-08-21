@@ -70,7 +70,9 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   const [appStatus, setAppStatus] = useState<string>('');
   const [extraData, setExtraData] = useState<Record<string, any>>({
     bond: 'None',
-    feeStatus: 'Pending',
+    feeStatus: 'Paid',
+    hasExam: 'No',
+    examDate: '',
     hasScholarship: 'No',
     scholarshipAmount: '',
     scholarshipName: '',
@@ -122,6 +124,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
     // Set default status when type changes
     if (selectedType === 'EXAM') {
       setAppStatus('EXAM_REGISTERED');
+      setExtraData((prev) => ({ ...prev, hasExam: 'Yes' }));
     } else {
       setAppStatus(config.stages[0]?.id || 'APPLIED');
     }
@@ -329,7 +332,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
             </div>
 
-            {/* COMMON APPLICATION DATE FIELD */}
+            {/* COMMON APPLICATION DATE & LOCATION */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-[#EFECEC] mb-1">Date of Applying</label>
@@ -374,9 +377,11 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         ? 'e.g. IIT Madras, NIT Trichy, VIT'
                         : selectedType === 'HACKATHON'
                         ? 'e.g. HackTheBox, Smart India Hackathon'
+                        : selectedType === 'CERTIFICATION'
+                        ? 'e.g. AWS, CompTIA, OffSec, Microsoft'
                         : selectedType === 'FELLOWSHIP'
                         ? 'e.g. Ministry of Education (AICTE Yuva Sangam)'
-                        : 'e.g. CrowdStrike, Microsoft'
+                        : 'e.g. Organization Name'
                     }
                     value={formData.companyName}
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
@@ -399,9 +404,11 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         ? 'e.g. M.Tech Computer Science / AI'
                         : selectedType === 'HACKATHON'
                         ? 'e.g. National Cyber Defense CTF'
+                        : selectedType === 'CERTIFICATION'
+                        ? 'e.g. AWS Certified Solutions Architect / OSCP'
                         : selectedType === 'FELLOWSHIP'
                         ? 'e.g. Yuva Sangam Exposure Visit'
-                        : 'e.g. SOC Analyst / Security Engineer'
+                        : 'e.g. Opportunity Title'
                     }
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -410,6 +417,93 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                 </div>
               </div>
             </div>
+
+            {/* UNIVERSAL FEE PAYMENT & EXAM DATE SECTION FOR ALL NON-JOB TYPES */}
+            {selectedType !== 'JOB' && selectedType !== 'COLLEGE' && (
+              <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
+                <span className="text-[10px] uppercase font-bold text-[#6CBF84] tracking-wider block flex items-center gap-1.5 font-mono">
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Fee Payment & Exam / Event Date Details</span>
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[10px] text-[#BFC3C7] mb-1">Fee / Amount Paid</label>
+                    <div className="relative">
+                      <DollarSign className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="e.g. ₹1,800 / $300 / Free"
+                        value={formData.package}
+                        onChange={(e) => setFormData({ ...formData, package: e.target.value })}
+                        className="w-full pl-9 pr-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Status</label>
+                    <select
+                      value={extraData.feeStatus || 'Paid'}
+                      onChange={(e) => setExtraData({ ...extraData, feeStatus: e.target.value })}
+                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs font-semibold text-[#EFECEC] focus:outline-none focus:border-[#6CBF84]"
+                    >
+                      <option value="Paid" className="bg-[#0B0B0B]">✓ Paid</option>
+                      <option value="Pending" className="bg-[#0B0B0B]">○ Pending</option>
+                      <option value="Free" className="bg-[#0B0B0B]">🟢 Free / Waived</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Date</label>
+                    <input
+                      type="date"
+                      value={extraData.feePaymentDate || ''}
+                      onChange={(e) => setExtraData({ ...extraData, feePaymentDate: e.target.value })}
+                      className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-[#BFC3C7] mb-1">Transaction ID</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. TXN9841203"
+                      value={extraData.transactionId || ''}
+                      onChange={(e) => setExtraData({ ...extraData, transactionId: e.target.value })}
+                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                    />
+                  </div>
+                </div>
+
+                {/* OPTIONAL EXAM / EVENT DATE PICKER FOR CERTIFICATIONS, HACKATHONS & CUSTOM */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/5">
+                  <div>
+                    <label className="block text-[10px] text-[#E2B85C] font-bold mb-1">Is there an Exam / Event Date?</label>
+                    <select
+                      value={extraData.hasExam || 'No'}
+                      onChange={(e) => setExtraData({ ...extraData, hasExam: e.target.value })}
+                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                    >
+                      <option value="No" className="bg-[#0B0B0B]">○ No Exam / Date</option>
+                      <option value="Yes" className="bg-[#0B0B0B] text-[#E2B85C]">✓ Yes - Scheduled Exam / Test Date</option>
+                    </select>
+                  </div>
+
+                  {(extraData.hasExam === 'Yes' || selectedType === 'EXAM') && (
+                    <div>
+                      <label className="block text-[10px] text-[#E2B85C] font-bold mb-1">Exam / Test Date</label>
+                      <input
+                        type="date"
+                        value={extraData.examDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, examDate: e.target.value })}
+                        className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-[#E2B85C]/40 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* TYPE-SPECIFIC SECTION: COLLEGE / UNIVERSITY ADMISSION (FEES & SCHOLARSHIP) */}
             {selectedType === 'COLLEGE' && (
@@ -640,57 +734,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   </div>
                 </div>
 
-                {/* 3. FEE PAYMENT & TRANSACTION DETAILS */}
-                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
-                  <span className="text-[10px] uppercase font-bold text-[#6CBF84] tracking-wider block flex items-center gap-1.5 font-mono">
-                    <CreditCard className="w-3.5 h-3.5" />
-                    <span>Fee Payment Details</span>
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Application Fee</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. ₹1,800"
-                        value={formData.package}
-                        onChange={(e) => setFormData({ ...formData, package: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Status</label>
-                      <select
-                        value={extraData.feeStatus || 'Pending'}
-                        onChange={(e) => setExtraData({ ...extraData, feeStatus: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      >
-                        <option value="Pending" className="bg-[#0B0B0B]">○ Pending</option>
-                        <option value="Paid" className="bg-[#0B0B0B]">✓ Paid</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Date</label>
-                      <input
-                        type="date"
-                        value={extraData.feePaymentDate || ''}
-                        onChange={(e) => setExtraData({ ...extraData, feePaymentDate: e.target.value })}
-                        className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Transaction ID</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. TXN9841203"
-                        value={extraData.transactionId || ''}
-                        onChange={(e) => setExtraData({ ...extraData, transactionId: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 4. EXAM CENTER BREAKDOWN */}
+                {/* 3. EXAM CENTER BREAKDOWN */}
                 <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
                   <span className="text-[10px] uppercase font-bold text-[#E2B85C] tracking-wider block flex items-center gap-1.5 font-mono">
                     <MapPin className="w-3.5 h-3.5" />
@@ -720,7 +764,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   </div>
                 </div>
 
-                {/* 5. DOCUMENTS CHECKLIST */}
+                {/* 4. DOCUMENTS CHECKLIST */}
                 <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
                   <span className="text-[10px] uppercase font-bold text-[#EFECEC] tracking-wider block flex items-center gap-1.5 font-mono">
                     <CheckSquare className="w-3.5 h-3.5 text-[#C3195D]" />
