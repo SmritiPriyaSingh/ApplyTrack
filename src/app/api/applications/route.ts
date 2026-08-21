@@ -214,14 +214,18 @@ export async function POST(request: Request) {
       },
     });
 
-    // 7. Increment goal count
-    const month = new Date().getMonth() + 1;
-    const year = new Date().getFullYear();
-    await prisma.goal.upsert({
-      where: { userId_month_year: { userId: user.id, month, year } },
-      update: { currentApplications: { increment: 1 } },
-      create: { userId: user.id, month, year, targetApplications: 40, currentApplications: 1 },
-    });
+    // 7. Increment goal count (Non-blocking safe wrapper)
+    try {
+      const month = new Date().getMonth() + 1;
+      const year = new Date().getFullYear();
+      await prisma.goal.upsert({
+        where: { userId_month_year: { userId: user.id, month, year } },
+        update: { currentApplications: { increment: 1 } },
+        create: { userId: user.id, month, year, targetApplications: 40, currentApplications: 1 },
+      });
+    } catch (goalErr) {
+      console.warn('Non-critical goal increment warning:', goalErr);
+    }
 
     return NextResponse.json({ success: true, application });
   } catch (error: any) {

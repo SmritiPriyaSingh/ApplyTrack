@@ -169,8 +169,13 @@ export async function ensureDbInitialized() {
             "targetApplications" INTEGER NOT NULL DEFAULT 40,
             "currentApplications" INTEGER NOT NULL DEFAULT 0,
             "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT "Goal_userId_month_year_key" UNIQUE ("userId", "month", "year")
           );
+        `);
+
+        await prisma.$executeRawUnsafe(`
+          CREATE UNIQUE INDEX IF NOT EXISTS "Goal_userId_month_year_key" ON "Goal"("userId", "month", "year");
         `);
 
         // Seed default user
