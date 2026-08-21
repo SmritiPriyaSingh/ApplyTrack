@@ -24,8 +24,7 @@ import {
   CreditCard,
   FileCheck,
   ExternalLink,
-  Plus,
-  FileCheck2
+  Plus
 } from 'lucide-react';
 import { APPLICATION_TYPES, ApplicationTypeConfig, EXAM_APPLICATION_STATUSES } from '@/lib/application-types';
 import { WORK_MODES, JOB_TYPES, SOURCES } from '@/lib/constants';
@@ -327,8 +326,8 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
         {step === 2 && (
           <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
             {/* STATUS & PRIORITY STRIP */}
-            <div className="grid grid-cols-3 gap-3 bg-[#0B0B0B] p-3 rounded-xl border border-white/5">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#0B0B0B] p-3 rounded-xl border border-white/5">
+              <div className="sm:col-span-2">
                 <label className="block text-[11px] font-bold text-[#C3195D] mb-1 font-mono uppercase tracking-wider">
                   Application Status
                 </label>
@@ -362,7 +361,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
             </div>
 
             {/* PRIMARY & SECONDARY FIELDS */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-[#EFECEC] mb-1">{config.fields.primaryLabel}</label>
                 <div className="relative">
@@ -422,7 +421,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   <span>Salary Package, Location, Work Mode & Service Bond</span>
                 </span>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] text-[#BFC3C7] mb-1">Salary Package (CTC)</label>
                     <div className="relative">
@@ -449,7 +448,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[11px] text-[#BFC3C7] mb-1">Job Location</label>
                     <div className="relative">
@@ -502,14 +501,14 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     <Calendar className="w-3.5 h-3.5" />
                     <span>Registration Deadlines & Critical Windows</span>
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     <div>
                       <label className="block text-[10px] text-[#BFC3C7] mb-1">Registration Opens</label>
                       <input
                         type="date"
                         value={extraData.regOpenDate || ''}
                         onChange={(e) => setExtraData({ ...extraData, regOpenDate: e.target.value })}
-                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
+                        className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
                       />
                     </div>
                     <div>
@@ -518,7 +517,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         type="date"
                         value={extraData.regCloseDate || ''}
                         onChange={(e) => setExtraData({ ...extraData, regCloseDate: e.target.value })}
-                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-[#C3195D]/40 rounded-lg text-xs text-[#EFECEC]"
+                        className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-[#C3195D]/40 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
                       />
                     </div>
                     <div>
@@ -527,7 +526,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         type="date"
                         value={extraData.lateRegDate || ''}
                         onChange={(e) => setExtraData({ ...extraData, lateRegDate: e.target.value })}
-                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
+                        className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
                       />
                     </div>
                     <div>
@@ -536,7 +535,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         type="date"
                         value={extraData.correctionDate || ''}
                         onChange={(e) => setExtraData({ ...extraData, correctionDate: e.target.value })}
-                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
+                        className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
                       />
                     </div>
                   </div>
@@ -548,17 +547,17 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     <FileCheck className="w-3.5 h-3.5" />
                     <span>Admit Card & Download Link</span>
                   </span>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[10px] text-[#BFC3C7] mb-1">Admit Card Date</label>
                       <input
                         type="date"
                         value={extraData.admitCardDate || ''}
                         onChange={(e) => setExtraData({ ...extraData, admitCardDate: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                        className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
                       />
                     </div>
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <label className="block text-[10px] text-[#BFC3C7] mb-1">Admit Card Link / URL</label>
                       <input
                         type="text"
@@ -598,7 +597,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     <CreditCard className="w-3.5 h-3.5" />
                     <span>Fee Payment Details</span>
                   </span>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     <div>
                       <label className="block text-[10px] text-[#BFC3C7] mb-1">Application Fee</label>
                       <input
@@ -626,7 +625,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         type="date"
                         value={extraData.feePaymentDate || ''}
                         onChange={(e) => setExtraData({ ...extraData, feePaymentDate: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                        className="w-full px-2 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] [color-scheme:dark]"
                       />
                     </div>
                     <div>
@@ -648,7 +647,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     <MapPin className="w-3.5 h-3.5" />
                     <span>Exam Center Breakdown</span>
                   </span>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-[10px] text-[#BFC3C7] mb-1">Preferred City</label>
                       <input
@@ -684,7 +683,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
                 {/* 5. DOCUMENTS CHECKLIST */}
                 <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
-                  <span className="text-[10px] uppercase font-bold text-[#EFECEC] tracking-wider block flex items-center gap-1.5">
+                  <span className="text-[10px] uppercase font-bold text-[#EFECEC] tracking-wider block flex items-center gap-1.5 font-mono">
                     <CheckSquare className="w-3.5 h-3.5 text-[#C3195D]" />
                     <span>Documents Checklist</span>
                   </span>
@@ -732,7 +731,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
             {/* RESUME HANDLING: STRICTLY ONLY FOR JOB TYPE */}
             {config.requiresResume ? (
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/5">
                 <div>
                   <label className="block text-xs font-medium text-[#EFECEC] mb-1">Source</label>
                   <select
