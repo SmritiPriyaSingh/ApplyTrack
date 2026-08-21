@@ -15,9 +15,11 @@ import {
   CreditCard,
   MapPin,
   Download,
-  UploadCloud,
-  CheckCircle2,
-  FileCheck
+  Award,
+  GraduationCap,
+  Home,
+  TrendingUp,
+  School
 } from 'lucide-react';
 import { APPLICATION_TYPES, getAllStagesForType, getStageBadgeForType } from '@/lib/application-types';
 import { formatDate } from '@/lib/utils';
@@ -163,15 +165,15 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
-      {/* FEATURE 10: INTERACTIVE VISUAL JOURNEY PROGRESS TIMELINE BAR */}
+      {/* SIGNATURE VISUAL JOURNEY PROGRESS TIMELINE BAR */}
       <div className="bg-[#0B0B0B] border border-white/5 p-5 rounded-2xl space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider flex items-center gap-2 font-mono">
             <Layers className="w-4 h-4 text-[#C3195D]" />
-            Visual Progress Journey
+            Visual Admission Journey Timeline
           </span>
           <span className={`px-2.5 py-1 rounded text-xs font-semibold ${currentBadge.color}`}>
-            Current Stage: {currentBadge.label}
+            Current Status: {currentBadge.label}
           </span>
         </div>
 
@@ -229,7 +231,7 @@ export default function ApplicationDetailPage() {
                     : 'border-transparent text-[#BFC3C7] hover:text-[#EFECEC]'
                 }`}
               >
-                Full Lifecycle Overview
+                Admission Lifecycle Overview
               </button>
               <button
                 onClick={() => setActiveTab('timeline')}
@@ -249,7 +251,7 @@ export default function ApplicationDetailPage() {
                     : 'border-transparent text-[#BFC3C7] hover:text-[#EFECEC]'
                 }`}
               >
-                Preparation Notes
+                {typeConfig.fields.notesLabel || 'Preparation Notes'}
               </button>
             </div>
 
@@ -257,153 +259,120 @@ export default function ApplicationDetailPage() {
             {activeTab === 'journey' && (
               <div className="space-y-4">
                 {/* 1. DEADLINES & DATES */}
-                {(extraDataObj.regCloseDate || extraDataObj.examDate) && (
+                {(extraDataObj.deadline || extraDataObj.reportingDate || extraDataObj.appliedOnDate) && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-2">
                     <span className="text-xs font-bold text-[#C3195D] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
                       <Calendar className="w-3.5 h-3.5" />
-                      Critical Dates & Registration Windows
+                      Admission Dates & Reporting Deadlines
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                      {extraDataObj.regOpenDate && (
+                      {extraDataObj.appliedOnDate && (
                         <div>
-                          <span className="text-[10px] text-[#BFC3C7] block">Reg Opens</span>
-                          <span className="font-mono text-[#EFECEC]">{formatDate(extraDataObj.regOpenDate)}</span>
+                          <span className="text-[10px] text-[#BFC3C7] block">Applied On</span>
+                          <span className="font-mono text-[#EFECEC]">{formatDate(extraDataObj.appliedOnDate)}</span>
                         </div>
                       )}
-                      {extraDataObj.regCloseDate && (
+                      {extraDataObj.deadline && (
                         <div>
-                          <span className="text-[10px] text-[#C3195D] font-bold block">Reg Closes *</span>
-                          <span className="font-mono text-[#C3195D] font-bold">{formatDate(extraDataObj.regCloseDate)}</span>
+                          <span className="text-[10px] text-[#C3195D] font-bold block">App Deadline *</span>
+                          <span className="font-mono text-[#C3195D] font-bold">{formatDate(extraDataObj.deadline)}</span>
                         </div>
                       )}
-                      {extraDataObj.admitCardDate && (
+                      {extraDataObj.counsellingDate && (
                         <div>
-                          <span className="text-[10px] text-[#BFC3C7] block">Admit Card Date</span>
-                          <span className="font-mono text-[#62929A]">{formatDate(extraDataObj.admitCardDate)}</span>
+                          <span className="text-[10px] text-[#BFC3C7] block">Counselling</span>
+                          <span className="font-mono text-[#62929A]">{formatDate(extraDataObj.counsellingDate)}</span>
                         </div>
                       )}
-                      {extraDataObj.examDate && (
+                      {extraDataObj.reportingDate && (
                         <div>
-                          <span className="text-[10px] text-[#BFC3C7] block">Exam Date</span>
-                          <span className="font-mono text-[#E2B85C] font-bold">{formatDate(extraDataObj.examDate)}</span>
+                          <span className="text-[10px] text-[#E2B85C] font-bold block">Campus Reporting</span>
+                          <span className="font-mono text-[#E2B85C] font-bold">{formatDate(extraDataObj.reportingDate)}</span>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* 2. ADMIT CARD DOWNLOAD */}
-                {(extraDataObj.admitCardLink || extraDataObj.admitCardFileData) && (
-                  <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <FileCheck className="w-5 h-5 text-[#62929A]" />
-                      <div>
-                        <h4 className="text-xs font-bold text-[#EFECEC]">Admit Card Ready</h4>
-                        <p className="text-[11px] text-[#BFC3C7]">Admit card has been issued for this exam.</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {extraDataObj.admitCardLink && (
-                        <a
-                          href={extraDataObj.admitCardLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-3 py-1.5 bg-[#0B0B0B] hover:bg-[#62929A] text-[#EFECEC] text-xs font-medium rounded-xl border border-white/5 flex items-center gap-1 transition"
-                        >
-                          <span>Portal Link</span>
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      )}
-                      {extraDataObj.admitCardFileData && (
-                        <a
-                          href={extraDataObj.admitCardFileData}
-                          download="AdmitCard.pdf"
-                          className="px-3.5 py-1.5 bg-[#62929A] hover:bg-[#4d7981] text-[#EFECEC] text-xs font-medium rounded-xl flex items-center gap-1.5 transition shadow-sm"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download PDF</span>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. FEE PAYMENT & TRANSACTION DETAILS */}
-                {(jobPosting?.package || extraDataObj.feeStatus) && (
+                {/* 2. DETAILED FEES & SCHOLARSHIP */}
+                {(extraDataObj.tuitionFee || extraDataObj.hostelFee || jobPosting?.package || extraDataObj.scholarshipAmount) && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-2">
                     <span className="text-xs font-bold text-[#6CBF84] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
                       <CreditCard className="w-3.5 h-3.5" />
-                      Fee Payment & Receipt Details
+                      Tuition, Hostel & Scholarship Summary
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                      <div>
-                        <span className="text-[10px] text-[#BFC3C7] block">Fee Amount</span>
-                        <span className="font-mono text-[#EFECEC] font-bold">{jobPosting?.package || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-[#BFC3C7] block">Status</span>
-                        <span
-                          className={`font-mono text-xs font-bold ${
-                            extraDataObj.feeStatus === 'Paid' ? 'text-[#6CBF84]' : 'text-[#E2B85C]'
-                          }`}
-                        >
-                          {extraDataObj.feeStatus === 'Paid' ? '✓ Paid' : '○ Pending'}
-                        </span>
-                      </div>
-                      {extraDataObj.feePaymentDate && (
+                      {extraDataObj.tuitionFee && (
                         <div>
-                          <span className="text-[10px] text-[#BFC3C7] block">Paid Date</span>
-                          <span className="font-mono text-[#EFECEC]">{formatDate(extraDataObj.feePaymentDate)}</span>
+                          <span className="text-[10px] text-[#BFC3C7] block">Tuition Fee</span>
+                          <span className="font-mono text-[#EFECEC]">{extraDataObj.tuitionFee}</span>
                         </div>
                       )}
-                      {extraDataObj.transactionId && (
+                      {extraDataObj.hostelFee && (
                         <div>
-                          <span className="text-[10px] text-[#BFC3C7] block">Transaction ID</span>
-                          <span className="font-mono text-[#62929A]">{extraDataObj.transactionId}</span>
+                          <span className="text-[10px] text-[#BFC3C7] block">Hostel Fee</span>
+                          <span className="font-mono text-[#EFECEC]">{extraDataObj.hostelFee}</span>
                         </div>
                       )}
+                      {extraDataObj.scholarshipAmount && (
+                        <div>
+                          <span className="text-[10px] text-[#6CBF84] font-bold block">Scholarship</span>
+                          <span className="font-mono text-[#6CBF84] font-bold">{extraDataObj.scholarshipAmount}</span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-[10px] text-[#BFC3C7] block">Net Payable</span>
+                        <span className="font-mono text-[#C3195D] font-bold">{jobPosting?.package || 'N/A'}</span>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* 4. EXAM CENTER BREAKDOWN */}
-                {(extraDataObj.allocatedCenter || extraDataObj.centerAddress) && (
+                {/* 3. LOCATION & MULTI-CAMPUS BREAKDOWN */}
+                {(extraDataObj.state || extraDataObj.campus || jobPosting?.location) && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-2">
                     <span className="text-xs font-bold text-[#E2B85C] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
                       <MapPin className="w-3.5 h-3.5" />
-                      Allocated Exam Center & Location
+                      Campus Location Details
                     </span>
-                    <div className="space-y-1 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-[#BFC3C7]">Center Name:</span>
-                        <span className="font-bold text-[#EFECEC]">{extraDataObj.allocatedCenter}</span>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      {extraDataObj.state && (
+                        <div>
+                          <span className="text-[10px] text-[#BFC3C7] block">State</span>
+                          <span className="font-semibold text-[#EFECEC]">{extraDataObj.state}</span>
+                        </div>
+                      )}
+                      <div>
+                        <span className="text-[10px] text-[#BFC3C7] block">City</span>
+                        <span className="font-semibold text-[#EFECEC]">{jobPosting?.location}</span>
                       </div>
-                      {extraDataObj.centerAddress && (
-                        <div className="flex justify-between">
-                          <span className="text-[#BFC3C7]">Address:</span>
-                          <span className="text-[#BFC3C7] italic">{extraDataObj.centerAddress}</span>
+                      {extraDataObj.campus && (
+                        <div>
+                          <span className="text-[10px] text-[#BFC3C7] block">Campus</span>
+                          <span className="font-semibold text-[#62929A]">{extraDataObj.campus}</span>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* 5. DOCUMENTS CHECKLIST */}
+                {/* 4. DOCUMENTS CHECKLIST */}
                 {extraDataObj.docsChecklist && (
                   <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-3">
                     <span className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider block flex items-center gap-1.5 font-mono">
                       <CheckSquare className="w-3.5 h-3.5 text-[#C3195D]" />
-                      Interactive Documents Checklist
+                      Admission Documents Checklist
                     </span>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                       {[
-                        { key: 'aadhaar', label: 'Aadhaar / Govt ID' },
+                        { key: 'mark10', label: '10th Marksheet' },
+                        { key: 'mark12', label: '12th Marksheet' },
+                        { key: 'gradDegree', label: 'Graduation Degree' },
+                        { key: 'scorecard', label: 'GATE / Scorecard' },
+                        { key: 'aadhaar', label: 'Aadhaar Card' },
                         { key: 'photo', label: 'Passport Photo' },
-                        { key: 'signature', label: 'Signature Image' },
                         { key: 'categoryCert', label: 'Category Cert' },
-                        { key: 'degreeCert', label: 'Degree / Marksheet' },
-                        { key: 'paymentReceipt', label: 'Payment Receipt' },
+                        { key: 'incomeCert', label: 'Income Cert' },
                       ].map((item) => {
                         const checked = extraDataObj.docsChecklist?.[item.key] || false;
                         return (
@@ -429,11 +398,11 @@ export default function ApplicationDetailPage() {
             {activeTab === 'timeline' && (
               <div className="space-y-4">
                 <form onSubmit={handleAddEvent} className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 space-y-3">
-                  <h4 className="text-xs font-bold text-[#EFECEC]">Add Timeline Event / Note</h4>
+                  <h4 className="text-xs font-bold text-[#EFECEC]">Add Admission Event / Note</h4>
                   <div className="space-y-2">
                     <input
                       type="text"
-                      placeholder="Title (e.g. Registered Exam, Admit card printed)..."
+                      placeholder="Title (e.g. Submitted marksheets, Fee paid)..."
                       value={eventTitle}
                       onChange={(e) => setEventTitle(e.target.value)}
                       className="w-full p-2 bg-[#0B0B0B] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
@@ -476,9 +445,11 @@ export default function ApplicationDetailPage() {
             {/* TAB 3: PREPARATION NOTES */}
             {activeTab === 'notes' && (
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider font-mono">Preparation Notes</h4>
+                <h4 className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider font-mono">
+                  {typeConfig.fields.notesLabel || 'Notes'}
+                </h4>
                 <p className="text-xs text-[#EFECEC] whitespace-pre-wrap bg-[#1A1A1A] p-4 rounded-xl border border-white/5 leading-relaxed">
-                  {app.notes || 'No preparation notes recorded.'}
+                  {app.notes || 'No notes recorded.'}
                 </p>
               </div>
             )}
@@ -488,36 +459,50 @@ export default function ApplicationDetailPage() {
         {/* SIDEBAR DETAILS PANEL */}
         <div className="space-y-6">
           <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-5 space-y-4">
-            <h3 className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider">Opportunity Meta</h3>
+            <h3 className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider">College Admission Meta</h3>
 
             <div className="space-y-2 text-xs">
               <div className="flex justify-between border-b border-white/5 pb-2">
-                <span className="text-[#BFC3C7]">Organization:</span>
+                <span className="text-[#BFC3C7]">Institute:</span>
                 <span className="font-semibold text-[#EFECEC]">{company?.name}</span>
               </div>
               <div className="flex justify-between border-b border-white/5 pb-2">
-                <span className="text-[#BFC3C7]">Title:</span>
+                <span className="text-[#BFC3C7]">Degree:</span>
                 <span className="font-semibold text-[#EFECEC]">{jobPosting?.role}</span>
               </div>
 
-              {extraDataObj.registrationNo && (
+              {jobPosting?.department && (
                 <div className="flex justify-between border-b border-white/5 pb-2">
-                  <span className="text-[#BFC3C7]">Reg / Roll No:</span>
-                  <span className="font-mono text-[#62929A] font-semibold">{extraDataObj.registrationNo}</span>
+                  <span className="text-[#BFC3C7]">Branch:</span>
+                  <span className="font-semibold text-[#EFECEC]">{jobPosting.department}</span>
                 </div>
               )}
 
-              {extraDataObj.score && (
+              {extraDataObj.specialization && (
                 <div className="flex justify-between border-b border-white/5 pb-2">
-                  <span className="text-[#BFC3C7]">Score Obtained:</span>
-                  <span className="font-mono text-[#6CBF84] font-bold">{extraDataObj.score}</span>
+                  <span className="text-[#BFC3C7]">Specialization:</span>
+                  <span className="font-semibold text-[#62929A]">{extraDataObj.specialization}</span>
                 </div>
               )}
 
-              {extraDataObj.rank && (
+              {extraDataObj.admissionBasis && (
                 <div className="flex justify-between border-b border-white/5 pb-2">
-                  <span className="text-[#BFC3C7]">All India Rank:</span>
-                  <span className="font-mono text-[#C3195D] font-bold">{extraDataObj.rank}</span>
+                  <span className="text-[#BFC3C7]">Basis:</span>
+                  <span className="font-mono text-[#E2B85C] font-semibold">{extraDataObj.admissionBasis}</span>
+                </div>
+              )}
+
+              {extraDataObj.entranceScore && (
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                  <span className="text-[#BFC3C7]">Score / Rank:</span>
+                  <span className="font-mono text-[#6CBF84] font-bold">{extraDataObj.entranceScore}</span>
+                </div>
+              )}
+
+              {extraDataObj.hostelAllocated && (
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                  <span className="text-[#BFC3C7]">Hostel:</span>
+                  <span className="font-mono text-[#EFECEC] font-semibold">{extraDataObj.hostelAllocated}</span>
                 </div>
               )}
             </div>

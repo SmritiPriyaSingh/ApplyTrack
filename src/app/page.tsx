@@ -23,7 +23,7 @@ import {
   CheckSquare
 } from 'lucide-react';
 import { formatDate, getDaysAgo } from '@/lib/utils';
-import { APPLICATION_TYPES, getStageBadgeForType, getAllStagesForType, VISUAL_JOURNEY_STAGES } from '@/lib/application-types';
+import { APPLICATION_TYPES, getStageBadgeForType, getAllStagesForType } from '@/lib/application-types';
 import { NewApplicationModal } from '@/components/applications/new-application-modal';
 
 export default function CareerCRMHomePage() {
