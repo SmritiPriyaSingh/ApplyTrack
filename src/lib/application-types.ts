@@ -26,6 +26,7 @@ export const EXAM_APPLICATION_STATUSES = [
   { id: 'EXAM_COMPLETED', label: 'Exam Day', color: 'bg-[#62929A]/30 text-[#62929A] border-[#62929A]' },
   { id: 'RESULT_DECLARED', label: 'Result', color: 'bg-[#E2B85C]/20 text-[#E2B85C] border-[#E2B85C]/40' },
   { id: 'EXAM_ADMISSION', label: 'Admission Confirmed', color: 'bg-[#6CBF84]/40 text-[#EFECEC] border-[#6CBF84]' },
+  { id: 'NOT_QUALIFIED', label: 'Not Qualified', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
 ] as const;
 
 export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
@@ -50,9 +51,11 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     stages: [
       { id: 'APPLIED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
       { id: 'IN_PROGRESS', label: 'In Progress', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
+      { id: 'INTERVIEW', label: 'Interview', color: 'bg-[#62929A]/25 text-[#62929A] border-[#62929A]/40' },
       { id: 'OFFER', label: 'Offer Received', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'JOINED', label: 'Joined / Accepted', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
-      { id: 'REJECTED', label: 'Closed', color: 'bg-[#D96C6C]/15 text-[#D96C6C] border-[#D96C6C]/30' },
+      { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
+      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -97,6 +100,8 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       { id: 'ENTRANCE_EXAM', label: 'Entrance / Interview', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
       { id: 'OFFER_LETTER', label: 'Offer Letter', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'ENROLLED', label: 'Enrolled', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
+      { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
+      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -120,8 +125,11 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     stages: [
       { id: 'HACK_REGISTERED', label: 'Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
       { id: 'ROUND_1', label: 'Submissions', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
-      { id: 'WINNER', label: 'Winner / Winner Rank', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
+      { id: 'INTERVIEW', label: 'Interview / Pitch', color: 'bg-[#62929A]/25 text-[#62929A] border-[#62929A]/40' },
+      { id: 'WINNER', label: 'Winner / Rank', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
       { id: 'HACK_COMPLETED', label: 'Completed', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
+      { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
+      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -145,8 +153,11 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     stages: [
       { id: 'FELLOW_APPLIED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
       { id: 'SHORTLISTED', label: 'Shortlisted', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
+      { id: 'INTERVIEW', label: 'Interview', color: 'bg-[#62929A]/25 text-[#62929A] border-[#62929A]/40' },
       { id: 'SELECTED', label: 'Selected', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'FELLOW_JOINED', label: 'Joined Program', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
+      { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
+      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -170,6 +181,7 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       { id: 'CERT_REGISTERED', label: 'Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
       { id: 'CERT_EXAM_PASSED', label: 'Exam Passed', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'CERT_ISSUED', label: 'Certificate Issued', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
+      { id: 'REJECTED', label: 'Failed', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
     ],
   },
 
@@ -192,7 +204,10 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     },
     stages: [
       { id: 'APPLIED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
+      { id: 'INTERVIEW', label: 'Interview', color: 'bg-[#62929A]/25 text-[#62929A] border-[#62929A]/40' },
       { id: 'COMPLETED', label: 'Completed', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
+      { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/20 text-[#D96C6C] border-[#D96C6C]/40' },
+      { id: 'GHOSTED', label: 'Ghosted 👻', color: 'bg-[#737373]/20 text-[#BFC3C7] border-white/10' },
     ],
   },
 };
@@ -204,19 +219,19 @@ export function getApplicationTypeConfig(typeId?: string): ApplicationTypeConfig
 export function getAllStagesForType(typeId?: string, customStages?: { id: string; label: string; color: string }[]) {
   const config = getApplicationTypeConfig(typeId);
   const initialStage = config.stages[0]; // e.g. "Applied"
-  const finalStage = config.stages.find(s => s.id === 'JOINED' || s.id === 'EXAM_ADMISSION' || s.id === 'ENROLLED' || s.id === 'WINNER' || s.id === 'COMPLETED') || config.stages[config.stages.length - 1];
+  const endStages = config.stages.filter(s => s.id === 'JOINED' || s.id === 'EXAM_ADMISSION' || s.id === 'ENROLLED' || s.id === 'WINNER' || s.id === 'COMPLETED' || s.id === 'REJECTED' || s.id === 'GHOSTED');
 
   if (customStages && customStages.length > 0) {
-    // Return initial stage + user custom stages in exact order added + final stage
     const customList = customStages.map(cs => ({
       id: cs.id,
       label: cs.label,
       color: cs.color || 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D] font-bold'
     }));
 
-    const middleStages = customList.filter(c => c.id !== initialStage.id && c.id !== finalStage.id);
+    const endStageIds = new Set(endStages.map(e => e.id));
+    const middleStages = customList.filter(c => c.id !== initialStage.id && !endStageIds.has(c.id));
 
-    return [initialStage, ...middleStages, finalStage];
+    return [initialStage, ...middleStages, ...endStages];
   }
 
   return config.stages;
