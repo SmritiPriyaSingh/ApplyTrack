@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Building2, Briefcase, DollarSign, MapPin, FileText, Plus, Check, UploadCloud } from 'lucide-react';
-import { WORK_MODES, JOB_TYPES, SOURCES } from '@/lib/constants';
+import { X, Building2, Briefcase, DollarSign, MapPin, FileText, Plus, Check, UploadCloud, Layers } from 'lucide-react';
+import { WORK_MODES, JOB_TYPES, SOURCES, OPPORTUNITY_TYPES } from '@/lib/constants';
 
 interface NewApplicationModalProps {
   isOpen: boolean;
@@ -11,6 +11,7 @@ interface NewApplicationModalProps {
 }
 
 export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicationModalProps) {
+  const [opportunityType, setOpportunityType] = useState('JOB');
   const [formData, setFormData] = useState({
     companyName: '',
     role: '',
@@ -38,6 +39,8 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   const [resumeCreating, setResumeCreating] = useState(false);
   const docInputRef = useRef<HTMLInputElement>(null);
 
+  const activeOpp = OPPORTUNITY_TYPES.find((o) => o.id === opportunityType) || OPPORTUNITY_TYPES[0];
+
   const fetchResumes = () => {
     fetch('/api/resumes')
       .then((res) => res.json())
@@ -62,7 +65,6 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size limit (e.g. 10MB)
     if (file.size > 10 * 1024 * 1024) {
       alert("File size should be less than 10MB");
       return;
@@ -124,10 +126,15 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
     setLoading(true);
     try {
+      const payload = {
+        ...formData,
+        notes: opportunityType !== 'JOB' ? `[Category: ${activeOpp.label}] ${formData.notes}` : formData.notes,
+      };
+
       const res = await fetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -151,8 +158,8 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               <Briefcase className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-[#EFECEC]">New Application Entry</h2>
-              <p className="text-[11px] text-[#BFC3C7]">Record role, company, salary, & resume version</p>
+              <h2 className="text-sm font-semibold text-[#EFECEC]">Track New Opportunity Entry</h2>
+              <p className="text-[11px] text-[#BFC3C7]">Monitor Jobs, Govt Programs (Yuva Sangam), Hackathons/CTFs & Exams</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg text-[#BFC3C7] hover:text-[#EFECEC] hover:bg-[#1A1A1A] transition">
@@ -161,15 +168,50 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
+          {/* Opportunity Category Selector */}
+          <div>
+            <label className="block text-xs font-medium text-[#C3195D] mb-1 flex items-center gap-1.5 font-mono uppercase tracking-wider">
+              <Layers className="w-3.5 h-3.5" />
+              <span>Category / Opportunity Type</span>
+            </label>
+            <select
+              value={opportunityType}
+              onChange={(e) => {
+                const newType = e.target.value;
+                setOpportunityType(newType);
+                if (newType === 'GOVT_PROGRAM') {
+                  setFormData((prev) => ({ ...prev, source: 'Government Portal (ebsb.aicte-india.org)' }));
+                } else if (newType === 'HACKATHON_CTF') {
+                  setFormData((prev) => ({ ...prev, source: 'CTFtime / Hackathon Portal' }));
+                }
+              }}
+              className="w-full px-3 py-2 bg-[#0B0B0B] border border-[#C3195D]/40 rounded-xl text-xs font-medium text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+            >
+              {OPPORTUNITY_TYPES.map((type) => (
+                <option key={type.id} value={type.id} className="bg-[#0B0B0B] text-[#EFECEC]">
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Company Name *</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">{activeOpp.companyLabel} *</label>
               <div className="relative">
                 <Building2 className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
                 <input
                   type="text"
                   required
-                  placeholder="e.g. CrowdStrike, Microsoft"
+                  placeholder={
+                    opportunityType === 'GOVT_PROGRAM'
+                      ? 'e.g. Ministry of Education / AICTE (ebsb.aicte-india.org)'
+                      : opportunityType === 'HACKATHON_CTF'
+                      ? 'e.g. CTFtime / HackTheBox / Smart India Hackathon'
+                      : opportunityType === 'EXAM_ADMISSION'
+                      ? 'e.g. NTA / GATE / IIT Bombay'
+                      : 'e.g. CrowdStrike, Microsoft'
+                  }
                   value={formData.companyName}
                   onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                   className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -178,13 +220,21 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Role Title *</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">{activeOpp.roleLabel} *</label>
               <div className="relative">
                 <Briefcase className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
                 <input
                   type="text"
                   required
-                  placeholder="e.g. SOC Analyst / Security Engineer"
+                  placeholder={
+                    opportunityType === 'GOVT_PROGRAM'
+                      ? 'e.g. Yuva Sangam Phase-VII Visit'
+                      : opportunityType === 'HACKATHON_CTF'
+                      ? 'e.g. National Cyber Security CTF 2026'
+                      : opportunityType === 'EXAM_ADMISSION'
+                      ? 'e.g. GATE Computer Science Exam'
+                      : 'e.g. SOC Analyst / Security Engineer'
+                  }
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -195,10 +245,18 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Department</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">
+                {opportunityType === 'GOVT_PROGRAM' ? 'Ministry / Scheme' : opportunityType === 'HACKATHON_CTF' ? 'Track / Category' : 'Department'}
+              </label>
               <input
                 type="text"
-                placeholder="e.g. Threat Intelligence"
+                placeholder={
+                  opportunityType === 'GOVT_PROGRAM'
+                    ? 'e.g. Ek Bharat Shreshtha Bharat'
+                    : opportunityType === 'HACKATHON_CTF'
+                    ? 'e.g. Web Security / DFIR'
+                    : 'e.g. Threat Intelligence'
+                }
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                 className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -206,7 +264,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Work Mode</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Mode / Location Type</label>
               <select
                 value={formData.workMode}
                 onChange={(e) => setFormData({ ...formData, workMode: e.target.value })}
@@ -219,7 +277,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Job Type</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Engagement Type</label>
               <select
                 value={formData.jobType}
                 onChange={(e) => setFormData({ ...formData, jobType: e.target.value })}
@@ -234,12 +292,12 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Location</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Location / State</label>
               <div className="relative">
                 <MapPin className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder="e.g. San Francisco, CA / Remote"
+                  placeholder="e.g. India / Assam / Remote"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -248,12 +306,20 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Salary Package</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">
+                {opportunityType === 'HACKATHON_CTF' ? 'Prize / Bounty' : opportunityType === 'GOVT_PROGRAM' ? 'Stipend / Allowance' : 'Salary Package'}
+              </label>
               <div className="relative">
                 <DollarSign className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder="e.g. $135,000 /yr"
+                  placeholder={
+                    opportunityType === 'HACKATHON_CTF'
+                      ? 'e.g. ₹1,00,000 Cash Prize'
+                      : opportunityType === 'GOVT_PROGRAM'
+                      ? 'e.g. Fully Funded Exposure Visit'
+                      : 'e.g. $135,000 /yr'
+                  }
                   value={formData.package}
                   onChange={(e) => setFormData({ ...formData, package: e.target.value })}
                   className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -265,7 +331,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
           {/* Source & Dynamic Resume Selector */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Source</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Registration Portal / Source</label>
               <select
                 value={formData.source}
                 onChange={(e) => setFormData({ ...formData, source: e.target.value })}
@@ -279,7 +345,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-medium text-[#EFECEC]">Resume Version Submitted</label>
+                <label className="block text-xs font-medium text-[#EFECEC]">Resume / Document Submitted</label>
                 {resumes.length > 0 && (
                   <button
                     type="button"
@@ -312,14 +378,14 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               ) : (
                 /* Empty State when no resumes exist */
                 <div className="bg-[#0B0B0B] border border-white/5 rounded-xl p-3 text-center space-y-2">
-                  <p className="text-[11px] text-[#BFC3C7]">No resumes found in your vault.</p>
+                  <p className="text-[11px] text-[#BFC3C7]">No documents found in your vault.</p>
                   <button
                     type="button"
                     onClick={() => setShowInlineResumeForm(true)}
                     className="px-3.5 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-[11px] font-medium rounded-lg inline-flex items-center gap-1.5 transition shadow-sm"
                   >
                     <UploadCloud className="w-3.5 h-3.5" />
-                    <span>Upload Resume Document</span>
+                    <span>Upload Resume / ID Document</span>
                   </button>
                 </div>
               )}
@@ -332,7 +398,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold text-[#EFECEC] flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5 text-[#C3195D]" />
-                  <span>Upload Resume Document from Device</span>
+                  <span>Upload Document File from Device</span>
                 </h4>
                 <button
                   type="button"
@@ -344,12 +410,13 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
 
               {/* Native Document File Selector Button */}
-              <div className="flex flex-col items-center justify-center border border-dashed border-white/10 hover:border-[#C3195D]/50 bg-[#1A1A1A] p-3.5 rounded-xl text-center cursor-pointer transition"
+              <div
+                className="flex flex-col items-center justify-center border border-dashed border-white/10 hover:border-[#C3195D]/50 bg-[#1A1A1A] p-3.5 rounded-xl text-center cursor-pointer transition"
                 onClick={() => docInputRef.current?.click()}
               >
                 <UploadCloud className="w-5 h-5 text-[#C3195D] mb-1" />
                 <span className="text-xs font-medium text-[#EFECEC]">
-                  {selectedFileName ? `Selected: ${selectedFileName}` : 'Choose Resume File (.pdf, .docx)'}
+                  {selectedFileName ? `Selected: ${selectedFileName}` : 'Choose Resume / ID File (.pdf, .docx)'}
                 </span>
                 <span className="text-[10px] text-[#737373] mt-0.5">Click to browse your documents</span>
 
@@ -364,11 +431,11 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
 
               {/* Single Clean Title Input Field */}
               <div>
-                <label className="block text-[11px] text-[#BFC3C7] mb-1">Resume Name / Label *</label>
+                <label className="block text-[11px] text-[#BFC3C7] mb-1">Document Label / Name *</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. SOC Resume, DevOps Resume"
+                  placeholder="e.g. SOC Resume, Yuva Sangam Application Form"
                   value={newResumeTitle}
                   onChange={(e) => setNewResumeTitle(e.target.value)}
                   className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -383,17 +450,17 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                   className="px-3.5 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl flex items-center gap-1.5 transition disabled:opacity-50"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  <span>{resumeCreating ? 'Uploading...' : 'Upload & Attach Resume'}</span>
+                  <span>{resumeCreating ? 'Uploading...' : 'Upload & Attach Document'}</span>
                 </button>
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-[#EFECEC] mb-1">Private Notes</label>
+            <label className="block text-xs font-medium text-[#EFECEC] mb-1">Private Notes / Registration Ref #</label>
             <textarea
               rows={2}
-              placeholder="e.g. Follow up next week..."
+              placeholder="e.g. Registration ID: YS-2026-89412, Submitted on ebsb.aicte-india.org..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="w-full p-3 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D] resize-none"
@@ -413,7 +480,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               disabled={loading}
               className="px-4 py-1.5 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium transition disabled:opacity-50"
             >
-              {loading ? 'Creating...' : 'Save Entry'}
+              {loading ? 'Saving...' : 'Save Opportunity Entry'}
             </button>
           </div>
         </form>
