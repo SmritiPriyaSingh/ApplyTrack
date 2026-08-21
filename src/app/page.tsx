@@ -534,7 +534,13 @@ export default function CareerCRMHomePage() {
         </>
       )}
 
-      {isModalOpen && <NewApplicationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <NewApplicationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={fetchCRMData}
+        />
+      )}
     </div>
   );
 }

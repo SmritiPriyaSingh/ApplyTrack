@@ -395,7 +395,13 @@ export default function ApplicationsPage() {
         </div>
       )}
 
-      {isModalOpen && <NewApplicationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <NewApplicationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={fetchApplications}
+        />
+      )}
     </div>
   );
 }
