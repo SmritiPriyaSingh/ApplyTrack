@@ -14,15 +14,19 @@ import {
   ArrowLeft,
   Check,
   UploadCloud,
-  DollarSign,
   MapPin,
   Building2,
   Calendar,
-  UserCheck,
-  Award as PrizeIcon,
+  DollarSign,
+  CheckSquare,
+  Square,
+  ShieldAlert,
+  CreditCard,
+  FileCheck,
+  ExternalLink,
   Plus
 } from 'lucide-react';
-import { APPLICATION_TYPES, ApplicationTypeConfig } from '@/lib/application-types';
+import { APPLICATION_TYPES, ApplicationTypeConfig, EXAM_APPLICATION_STATUSES } from '@/lib/application-types';
 import { WORK_MODES, JOB_TYPES, SOURCES } from '@/lib/constants';
 
 interface NewApplicationModalProps {
@@ -45,7 +49,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedType, setSelectedType] = useState<string>('JOB');
 
-  // Job specific state
+  // Common form state
   const [formData, setFormData] = useState({
     companyName: '',
     role: '',
@@ -61,7 +65,19 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   });
 
   // Type-specific extra fields state
-  const [extraData, setExtraData] = useState<Record<string, string>>({});
+  const [priority, setPriority] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('HIGH');
+  const [appStatus, setAppStatus] = useState<string>('');
+  const [extraData, setExtraData] = useState<Record<string, any>>({
+    feeStatus: 'Pending',
+    docsChecklist: {
+      aadhaar: false,
+      photo: false,
+      signature: false,
+      categoryCert: false,
+      degreeCert: false,
+      paymentReceipt: false,
+    },
+  });
 
   const [resumes, setResumes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,8 +85,10 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   const [newResumeTitle, setNewResumeTitle] = useState('');
   const [selectedFileName, setSelectedFileName] = useState('');
   const [selectedFileData, setSelectedFileData] = useState('');
+  const [admitCardFileName, setAdmitCardFileName] = useState('');
   const [resumeCreating, setResumeCreating] = useState(false);
   const docInputRef = useRef<HTMLInputElement>(null);
+  const admitCardInputRef = useRef<HTMLInputElement>(null);
 
   const config: ApplicationTypeConfig = APPLICATION_TYPES[selectedType] || APPLICATION_TYPES.JOB;
 
@@ -95,6 +113,15 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    // Set default status when type changes
+    if (selectedType === 'EXAM') {
+      setAppStatus('EXAM_REGISTERED');
+    } else {
+      setAppStatus(config.stages[0]?.id || 'APPLIED');
+    }
+  }, [selectedType]);
+
   if (!isOpen) return null;
 
   const handleDocumentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,6 +144,30 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleAdmitCardFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAdmitCardFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setExtraData((prev) => ({ ...prev, admitCardFileData: reader.result, admitCardFileName: file.name }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const toggleDocChecklist = (key: string) => {
+    setExtraData((prev) => ({
+      ...prev,
+      docsChecklist: {
+        ...(prev.docsChecklist || {}),
+        [key]: !prev.docsChecklist?.[key],
+      },
+    }));
   };
 
   const handleInlineResumeCreate = async (e: React.FormEvent) => {
@@ -163,7 +214,11 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
       const payload = {
         appType: selectedType,
         ...formData,
-        extraData,
+        status: appStatus,
+        extraData: {
+          ...extraData,
+          priority,
+        },
       };
 
       const res = await fetch('/api/applications', {
@@ -269,6 +324,41 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
         {/* STEP 2: DYNAMIC TYPE-SPECIFIC FORM */}
         {step === 2 && (
           <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4">
+            {/* STATUS & PRIORITY STRIP */}
+            <div className="grid grid-cols-3 gap-3 bg-[#0B0B0B] p-3 rounded-xl border border-white/5">
+              <div className="col-span-2">
+                <label className="block text-[11px] font-bold text-[#C3195D] mb-1 font-mono uppercase tracking-wider">
+                  Application Status
+                </label>
+                <select
+                  value={appStatus}
+                  onChange={(e) => setAppStatus(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs font-semibold text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                >
+                  {config.stages.map((stage) => (
+                    <option key={stage.id} value={stage.id} className="bg-[#0B0B0B] text-[#EFECEC]">
+                      ○ {stage.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#62929A] mb-1 font-mono uppercase tracking-wider">
+                  Priority
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as any)}
+                  className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs font-bold text-[#EFECEC] focus:outline-none focus:border-[#62929A]"
+                >
+                  <option value="HIGH" className="bg-[#0B0B0B] text-[#C3195D]">🔴 High Priority</option>
+                  <option value="MEDIUM" className="bg-[#0B0B0B] text-[#E2B85C]">🟡 Medium Priority</option>
+                  <option value="LOW" className="bg-[#0B0B0B] text-[#6CBF84]">🟢 Low Priority</option>
+                </select>
+              </div>
+            </div>
+
             {/* PRIMARY & SECONDARY FIELDS */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -287,8 +377,6 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         ? 'e.g. HackTheBox, Smart India Hackathon'
                         : selectedType === 'FELLOWSHIP'
                         ? 'e.g. Ministry of Education (AICTE Yuva Sangam)'
-                        : selectedType === 'CERTIFICATION'
-                        ? 'e.g. AWS, CompTIA, OffSec'
                         : 'e.g. CrowdStrike, Microsoft'
                     }
                     value={formData.companyName}
@@ -314,8 +402,6 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                         ? 'e.g. National Cyber Defense CTF'
                         : selectedType === 'FELLOWSHIP'
                         ? 'e.g. Yuva Sangam Exposure Visit'
-                        : selectedType === 'CERTIFICATION'
-                        ? 'e.g. Security+ / CEH / CISSP'
                         : 'e.g. SOC Analyst / Security Engineer'
                     }
                     value={formData.role}
@@ -326,256 +412,242 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
             </div>
 
-            {/* TYPE 2: COMPETITIVE EXAM FIELDS */}
+            {/* TYPE 2: COMPETITIVE EXAM FULL LIFECYCLE FIELDS */}
             {selectedType === 'EXAM' && (
-              <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Registration Number / Roll No.</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. CS26S8914021"
-                      value={extraData.registrationNo || ''}
-                      onChange={(e) => setExtraData({ ...extraData, registrationNo: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
+              <div className="space-y-4">
+                {/* 1. REGISTRATION WINDOWS & DEADLINES */}
+                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
+                  <span className="text-[10px] uppercase font-bold text-[#C3195D] tracking-wider block flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Registration Deadlines & Critical Windows</span>
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Registration Opens</label>
+                      <input
+                        type="date"
+                        value={extraData.regOpenDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, regOpenDate: e.target.value })}
+                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#C3195D] font-bold mb-1">Registration Closes *</label>
+                      <input
+                        type="date"
+                        value={extraData.regCloseDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, regCloseDate: e.target.value })}
+                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-[#C3195D]/40 rounded-lg text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Late Reg. Date</label>
+                      <input
+                        type="date"
+                        value={extraData.lateRegDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, lateRegDate: e.target.value })}
+                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Correction Window</label>
+                      <input
+                        type="date"
+                        value={extraData.correctionDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, correctionDate: e.target.value })}
+                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Application Fee (₹ / $)</label>
+                </div>
+
+                {/* 2. ADMIT CARD ATTACHMENT & LINK */}
+                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
+                  <span className="text-[10px] uppercase font-bold text-[#62929A] tracking-wider block flex items-center gap-1.5">
+                    <FileCheck className="w-3.5 h-3.5" />
+                    <span>Admit Card & Download Link</span>
+                  </span>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Admit Card Date</label>
+                      <input
+                        type="date"
+                        value={extraData.admitCardDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, admitCardDate: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Admit Card Link / URL</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. https://gate2026.iitb.ac.in/admitcard"
+                        value={extraData.admitCardLink || ''}
+                        onChange={(e) => setExtraData({ ...extraData, admitCardLink: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Device PDF Uploader for Admit Card */}
+                  <div
+                    onClick={() => admitCardInputRef.current?.click()}
+                    className="flex items-center justify-between border border-dashed border-white/10 hover:border-[#62929A]/50 bg-[#1A1A1A] p-3 rounded-xl cursor-pointer transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <UploadCloud className="w-4 h-4 text-[#62929A]" />
+                      <span className="text-xs text-[#EFECEC]">
+                        {admitCardFileName ? `Admit Card Attached: ${admitCardFileName}` : 'Upload Admit Card (PDF Document)'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-[#737373]">Click to upload PDF</span>
                     <input
-                      type="text"
-                      placeholder="e.g. ₹1,800"
-                      value={formData.package}
-                      onChange={(e) => setFormData({ ...formData, package: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                      type="file"
+                      ref={admitCardInputRef}
+                      accept=".pdf"
+                      onChange={handleAdmitCardFileChange}
+                      className="hidden"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Admit Card Date</label>
-                    <input
-                      type="date"
-                      value={extraData.admitCardDate || ''}
-                      onChange={(e) => setExtraData({ ...extraData, admitCardDate: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Exam Date</label>
-                    <input
-                      type="date"
-                      value={extraData.examDate || ''}
-                      onChange={(e) => setExtraData({ ...extraData, examDate: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Result Date</label>
-                    <input
-                      type="date"
-                      value={extraData.resultDate || ''}
-                      onChange={(e) => setExtraData({ ...extraData, resultDate: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
+                {/* 3. FEE PAYMENT & TRANSACTION DETAILS */}
+                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
+                  <span className="text-[10px] uppercase font-bold text-[#6CBF84] tracking-wider block flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Fee Payment Details</span>
+                  </span>
+                  <div className="grid grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Application Fee</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. ₹1,800"
+                        value={formData.package}
+                        onChange={(e) => setFormData({ ...formData, package: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Status</label>
+                      <select
+                        value={extraData.feeStatus || 'Pending'}
+                        onChange={(e) => setExtraData({ ...extraData, feeStatus: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      >
+                        <option value="Pending" className="bg-[#0B0B0B]">○ Pending</option>
+                        <option value="Paid" className="bg-[#0B0B0B]">✓ Paid</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Date</label>
+                      <input
+                        type="date"
+                        value={extraData.feePaymentDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, feePaymentDate: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Transaction ID</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. TXN9841203"
+                        value={extraData.transactionId || ''}
+                        onChange={(e) => setExtraData({ ...extraData, transactionId: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Score Obtained</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 745 / 1000"
-                      value={extraData.score || ''}
-                      onChange={(e) => setExtraData({ ...extraData, score: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
+                {/* 4. EXAM CENTER BREAKDOWN */}
+                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
+                  <span className="text-[10px] uppercase font-bold text-[#E2B85C] tracking-wider block flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>Exam Center Breakdown</span>
+                  </span>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Preferred City</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Indore / Bhopal"
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Allocated Center</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. ION Digital Zone iDZ 1"
+                        value={extraData.allocatedCenter || ''}
+                        onChange={(e) => setExtraData({ ...extraData, allocatedCenter: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Center Address</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Plot 42, Super Corridor, Indore"
+                        value={extraData.centerAddress || ''}
+                        onChange={(e) => setExtraData({ ...extraData, centerAddress: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">All India Rank (AIR)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. AIR 142"
-                      value={extraData.rank || ''}
-                      onChange={(e) => setExtraData({ ...extraData, rank: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
+                </div>
+
+                {/* 5. DOCUMENTS CHECKLIST */}
+                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
+                  <span className="text-[10px] uppercase font-bold text-[#EFECEC] tracking-wider block flex items-center gap-1.5">
+                    <CheckSquare className="w-3.5 h-3.5 text-[#C3195D]" />
+                    <span>Documents Checklist</span>
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                    {[
+                      { key: 'aadhaar', label: 'Aadhaar / Govt ID' },
+                      { key: 'photo', label: 'Passport Photo' },
+                      { key: 'signature', label: 'Signature Image' },
+                      { key: 'categoryCert', label: 'Category Cert (OBC/EWS)' },
+                      { key: 'degreeCert', label: 'Degree / Marksheet' },
+                      { key: 'paymentReceipt', label: 'Payment Receipt' },
+                    ].map((item) => {
+                      const checked = extraData.docsChecklist?.[item.key] || false;
+                      return (
+                        <div
+                          key={item.key}
+                          onClick={() => toggleDocChecklist(item.key)}
+                          className={`p-2 rounded-lg border flex items-center gap-2 cursor-pointer transition ${
+                            checked ? 'bg-[#C3195D]/15 border-[#C3195D] text-[#EFECEC]' : 'bg-[#1A1A1A] border-white/5 text-[#BFC3C7]'
+                          }`}
+                        >
+                          {checked ? <CheckSquare className="w-4 h-4 text-[#C3195D]" /> : <Square className="w-4 h-4 text-[#737373]" />}
+                          <span className="text-[11px] font-medium">{item.label}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* TYPE 3: COLLEGE ADMISSION FIELDS */}
-            {selectedType === 'COLLEGE' && (
-              <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Branch / Specialization</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Cybersecurity & Digital Forensics"
-                      value={formData.department}
-                      onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Tuition & Hostel Fee</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. ₹2,50,000 / year"
-                      value={formData.package}
-                      onChange={(e) => setFormData({ ...formData, package: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Entrance Exam Taken</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. GATE 2026 / VITMEE"
-                      value={extraData.entranceExam || ''}
-                      onChange={(e) => setExtraData({ ...extraData, entranceExam: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Scholarship Amount</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. ₹12,400 / month Stipend"
-                      value={extraData.scholarship || ''}
-                      onChange={(e) => setExtraData({ ...extraData, scholarship: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Application Deadline</label>
-                    <input
-                      type="date"
-                      value={extraData.deadline || ''}
-                      onChange={(e) => setExtraData({ ...extraData, deadline: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                </div>
+            {/* COMMON URL FIELD */}
+            {config.fields.showJobUrl && (
+              <div>
+                <label className="block text-xs font-medium text-[#EFECEC] mb-1">{config.fields.urlLabel}</label>
+                <input
+                  type="text"
+                  placeholder="e.g. https://gate2026.iitb.ac.in/"
+                  value={formData.jobUrl}
+                  onChange={(e) => setFormData({ ...formData, jobUrl: e.target.value })}
+                  className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                />
               </div>
             )}
-
-            {/* TYPE 4: HACKATHON / CTF FIELDS */}
-            {selectedType === 'HACKATHON' && (
-              <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Team Name</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. CyberKnights"
-                      value={extraData.teamName || ''}
-                      onChange={(e) => setExtraData({ ...extraData, teamName: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Team Members Count / Handles</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 4 Members (@smriti, @alex)"
-                      value={extraData.teamMembers || ''}
-                      onChange={(e) => setExtraData({ ...extraData, teamMembers: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Prize Pool / Bounty</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. ₹1,00,000 Cash Prize"
-                      value={formData.package}
-                      onChange={(e) => setFormData({ ...formData, package: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Event Date</label>
-                    <input
-                      type="date"
-                      value={extraData.eventDate || ''}
-                      onChange={(e) => setExtraData({ ...extraData, eventDate: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TYPE 5: FELLOWSHIP / GOVT PROGRAM FIELDS */}
-            {selectedType === 'FELLOWSHIP' && (
-              <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Stipend / Benefits</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Fully Funded Visit + ₹10,000"
-                      value={formData.package}
-                      onChange={(e) => setFormData({ ...formData, package: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Program Duration</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 10 Days Exposure Visit / 3 Months"
-                      value={extraData.duration || ''}
-                      onChange={(e) => setExtraData({ ...extraData, duration: e.target.value })}
-                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* COMMON FIELDS: LOCATION & PORTAL LINK */}
-            <div className="grid grid-cols-2 gap-4">
-              {config.fields.showLocation && (
-                <div>
-                  <label className="block text-xs font-medium text-[#EFECEC] mb-1">{config.fields.locationLabel}</label>
-                  <div className="relative">
-                    <MapPin className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
-                    <input
-                      type="text"
-                      placeholder="e.g. New Delhi / Online"
-                      value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {config.fields.showJobUrl && (
-                <div>
-                  <label className="block text-xs font-medium text-[#EFECEC] mb-1">{config.fields.urlLabel}</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. https://ebsb.aicte-india.org/"
-                    value={formData.jobUrl}
-                    onChange={(e) => setFormData({ ...formData, jobUrl: e.target.value })}
-                    className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                  />
-                </div>
-              )}
-            </div>
 
             {/* RESUME HANDLING: STRICTLY ONLY FOR JOB TYPE */}
             {config.requiresResume ? (
@@ -641,71 +713,12 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
             ) : null}
 
-            {/* INLINE RESUME FORM FOR JOB TYPE */}
-            {config.requiresResume && showInlineResumeForm && (
-              <div className="bg-[#0B0B0B] border border-[#C3195D]/40 p-4 rounded-xl space-y-3 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-[#EFECEC] flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#C3195D]" />
-                    <span>Upload Resume Document from Device</span>
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={() => setShowInlineResumeForm(false)}
-                    className="text-xs text-[#BFC3C7] hover:text-[#EFECEC]"
-                  >
-                    Cancel
-                  </button>
-                </div>
-
-                <div
-                  className="flex flex-col items-center justify-center border border-dashed border-white/10 hover:border-[#C3195D]/50 bg-[#1A1A1A] p-3.5 rounded-xl text-center cursor-pointer transition"
-                  onClick={() => docInputRef.current?.click()}
-                >
-                  <UploadCloud className="w-5 h-5 text-[#C3195D] mb-1" />
-                  <span className="text-xs font-medium text-[#EFECEC]">
-                    {selectedFileName ? `Selected: ${selectedFileName}` : 'Choose Resume File (.pdf, .docx)'}
-                  </span>
-                  <input
-                    type="file"
-                    ref={docInputRef}
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleDocumentFileChange}
-                    className="hidden"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] text-[#BFC3C7] mb-1">Resume Name / Label *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. SOC Resume, DevOps Resume"
-                    value={newResumeTitle}
-                    onChange={(e) => setNewResumeTitle(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleInlineResumeCreate}
-                    disabled={resumeCreating || !newResumeTitle.trim()}
-                    className="px-3.5 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium rounded-xl flex items-center gap-1.5 transition disabled:opacity-50"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    <span>{resumeCreating ? 'Uploading...' : 'Upload & Attach Resume'}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
+            {/* PREPARATION NOTES */}
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">Private Notes / Reference Details</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">{config.fields.notesLabel || 'Preparation Notes'}</label>
               <textarea
-                rows={2}
-                placeholder="e.g. Registration ID: YS-2026-89412, Submitted on ebsb.aicte-india.org..."
+                rows={3}
+                placeholder={config.fields.notesPlaceholder}
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="w-full p-3 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D] resize-none"

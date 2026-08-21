@@ -9,19 +9,21 @@ import {
   Trophy, 
   Globe, 
   Award, 
-  Folder,
   Clock, 
-  Video, 
   ArrowUpRight, 
   ChevronRight, 
   Plus, 
   Search, 
-  User, 
   Activity,
-  Layers
+  AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  Download,
+  CreditCard,
+  CheckSquare
 } from 'lucide-react';
 import { formatDate, getDaysAgo } from '@/lib/utils';
-import { APPLICATION_TYPES, getStageBadgeForType, getAllStagesForType } from '@/lib/application-types';
+import { APPLICATION_TYPES, getStageBadgeForType, getAllStagesForType, VISUAL_JOURNEY_STAGES } from '@/lib/application-types';
 import { NewApplicationModal } from '@/components/applications/new-application-modal';
 
 export default function CareerCRMHomePage() {
@@ -96,46 +98,64 @@ export default function CareerCRMHomePage() {
     return matchesSearch && matchesType && matchesStage;
   });
 
-  // Calculate dynamic metrics per Application Type
-  const jobApps = applications.filter((a) => (a.appType || 'JOB') === 'JOB');
+  // Collect Exam records
   const examApps = applications.filter((a) => a.appType === 'EXAM');
+  const jobApps = applications.filter((a) => (a.appType || 'JOB') === 'JOB');
   const collegeApps = applications.filter((a) => a.appType === 'COLLEGE');
   const hackApps = applications.filter((a) => a.appType === 'HACKATHON');
   const fellowApps = applications.filter((a) => a.appType === 'FELLOWSHIP');
 
-  // Collect action queue items (What should I do next?)
-  const actionQueueItems: any[] = [];
-  applications.forEach((app) => {
-    const daysAgo = getDaysAgo(app.applicationDate);
-    const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
+  // Compute Upcoming Exam Countdowns & Deadlines
+  const upcomingExamCards: any[] = [];
+  const criticalDeadlines: any[] = [];
 
-    if (['APPLIED', 'APPLICATION_VIEWED', 'EXAM_REGISTERED', 'APP_SUBMITTED', 'HACK_REGISTERED', 'FELLOW_APPLIED'].includes(app.status) && daysAgo >= 7) {
-      actionQueueItems.push({
-        id: `fu-${app.id}`,
-        appId: app.id,
-        company: app.jobPosting?.company?.name || 'Organization',
-        role: app.jobPosting?.role || 'Opportunity',
-        typeLabel: typeConfig.label,
-        title: `Registered ${daysAgo} days ago - check status`,
-        actionLabel: 'Check Status',
-      });
+  applications.forEach((app) => {
+    let extraObj: any = {};
+    if (app.extraData) {
+      try {
+        extraObj = JSON.parse(app.extraData);
+      } catch (e) {}
     }
 
-    if (app.interviews && app.interviews.length > 0) {
-      const scheduled = app.interviews.find((i: any) => i.status === 'SCHEDULED');
-      if (scheduled) {
-        actionQueueItems.push({
-          id: `int-${scheduled.id}`,
+    // Exam countdown
+    if (app.appType === 'EXAM' && extraObj.examDate) {
+      const examDateObj = new Date(extraObj.examDate);
+      const today = new Date();
+      const diffTime = examDateObj.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 0) {
+        upcomingExamCards.push({
+          id: app.id,
+          name: app.jobPosting?.role || 'Exam',
+          org: app.jobPosting?.company?.name || 'NTA / Org',
+          daysLeft: diffDays,
+          examDate: extraObj.examDate,
+          priority: extraObj.priority || 'HIGH',
+        });
+      }
+    }
+
+    // Registration close deadline alert
+    if (extraObj.regCloseDate) {
+      const closeDateObj = new Date(extraObj.regCloseDate);
+      const today = new Date();
+      const diffTime = closeDateObj.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 0 && diffDays <= 14) {
+        criticalDeadlines.push({
+          id: `dl-${app.id}`,
           appId: app.id,
-          company: app.jobPosting?.company?.name || 'Organization',
-          role: app.jobPosting?.role || 'Opportunity',
-          typeLabel: typeConfig.label,
-          title: `${scheduled.title} on ${formatDate(scheduled.scheduledAt)}`,
-          actionLabel: 'Prep Session',
+          title: `${app.jobPosting?.role} — Registration closes in ${diffDays} days`,
+          date: extraObj.regCloseDate,
+          type: 'REG_CLOSE',
         });
       }
     }
   });
+
+  upcomingExamCards.sort((a, b) => a.daysLeft - b.daysLeft);
 
   // Recent timeline events
   const allEvents: any[] = [];
@@ -201,9 +221,9 @@ export default function CareerCRMHomePage() {
           </div>
         </div>
       ) : (
-        /* POPULATED WORKSPACE VIEW WITH DYNAMIC TYPE METRICS */
+        /* POPULATED WORKSPACE VIEW */
         <>
-          {/* DYNAMIC METRICS CARDS ADAPTED PER APPLICATION TYPE */}
+          {/* DYNAMIC SUMMARY METRICS STRIP */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
             <div className="bg-[#0B0B0B] border border-white/5 p-3.5 rounded-2xl flex items-center justify-between">
               <div>
@@ -215,18 +235,18 @@ export default function CareerCRMHomePage() {
 
             <div className="bg-[#0B0B0B] border border-white/5 p-3.5 rounded-2xl flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-[#BFC3C7] uppercase font-mono block">Job Opportunities</span>
-                <span className="text-lg font-bold font-mono text-[#E2B85C]">{jobApps.length}</span>
+                <span className="text-[10px] text-[#BFC3C7] uppercase font-mono block">Exams Tracked</span>
+                <span className="text-lg font-bold font-mono text-[#62929A]">{examApps.length}</span>
               </div>
-              <Briefcase className="w-4 h-4 text-[#E2B85C]" />
+              <FileText className="w-4 h-4 text-[#62929A]" />
             </div>
 
             <div className="bg-[#0B0B0B] border border-white/5 p-3.5 rounded-2xl flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-[#BFC3C7] uppercase font-mono block">Exams Registered</span>
-                <span className="text-lg font-bold font-mono text-[#62929A]">{examApps.length}</span>
+                <span className="text-[10px] text-[#BFC3C7] uppercase font-mono block">Jobs Active</span>
+                <span className="text-lg font-bold font-mono text-[#E2B85C]">{jobApps.length}</span>
               </div>
-              <FileText className="w-4 h-4 text-[#62929A]" />
+              <Briefcase className="w-4 h-4 text-[#E2B85C]" />
             </div>
 
             <div className="bg-[#0B0B0B] border border-white/5 p-3.5 rounded-2xl flex items-center justify-between">
@@ -239,70 +259,75 @@ export default function CareerCRMHomePage() {
 
             <div className="bg-[#0B0B0B] border border-white/5 p-3.5 rounded-2xl flex items-center justify-between col-span-2 sm:col-span-1">
               <div>
-                <span className="text-[10px] text-[#BFC3C7] uppercase font-mono block">Hackathons & Fellowships</span>
+                <span className="text-[10px] text-[#BFC3C7] uppercase font-mono block">Hackathons & Programs</span>
                 <span className="text-lg font-bold font-mono text-[#C3195D]">{hackApps.length + fellowApps.length}</span>
               </div>
               <Trophy className="w-4 h-4 text-[#C3195D]" />
             </div>
           </div>
 
-          {/* SECTION 1: WHAT SHOULD I DO NEXT? (ACTION QUEUE) */}
-          <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-5 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#C3195D] animate-pulse" />
-                <h2 className="text-xs font-semibold text-[#EFECEC] tracking-wide uppercase font-mono">
-                  1. What Should I Do Next? (Action Queue)
+          {/* DASHBOARD INTEGRATION WIDGET 1: UPCOMING EXAMS COUNTDOWN CARDS */}
+          {upcomingExamCards.length > 0 && (
+            <div className="bg-[#0B0B0B] border border-[#C3195D]/30 p-5 rounded-2xl space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold text-[#EFECEC] tracking-wide uppercase font-mono flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#C3195D]" />
+                  <span>Upcoming Exams & Countdown Timers</span>
                 </h2>
+                <span className="text-[10px] font-mono text-[#C3195D] bg-[#1A1A1A] px-2 py-0.5 rounded border border-[#C3195D]/30">
+                  {upcomingExamCards.length} Scheduled
+                </span>
               </div>
-              <span className="text-[10px] font-mono text-[#C3195D] bg-[#1A1A1A] px-2 py-0.5 rounded border border-[#C3195D]/30">
-                {actionQueueItems.length} Immediate Tasks Pending
-              </span>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {actionQueueItems.slice(0, 6).map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-[#1A1A1A] border border-white/5 hover:border-[#C3195D]/40 p-3.5 rounded-xl flex flex-col justify-between transition"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-[#EFECEC]">{item.company}</span>
-                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#0B0B0B] text-[#C3195D] border border-[#C3195D]/30">
-                        {item.typeLabel}
-                      </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {upcomingExamCards.map((exam) => (
+                  <Link
+                    key={exam.id}
+                    href={`/applications/${exam.id}`}
+                    className="bg-[#1A1A1A] border border-white/5 hover:border-[#C3195D] p-4 rounded-xl flex items-center justify-between transition group"
+                  >
+                    <div>
+                      <span className="text-[10px] text-[#62929A] font-mono font-semibold block mb-0.5">{exam.org}</span>
+                      <h4 className="text-xs font-bold text-[#EFECEC] group-hover:text-[#C3195D] transition">{exam.name}</h4>
+                      <span className="text-[10px] text-[#737373] mt-1 block font-mono">Date: {formatDate(exam.examDate)}</span>
                     </div>
-                    <p className="text-[11px] text-[#BFC3C7] mb-2">{item.role} • {item.title}</p>
-                  </div>
 
-                  <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                    <span className="text-[10px] text-[#737373]">Action Item</span>
-                    <Link
-                      href={`/applications/${item.appId}`}
-                      className="text-[10px] font-medium text-[#C3195D] hover:text-[#EFECEC] bg-[#0B0B0B] px-2.5 py-1 rounded-lg border border-white/5 flex items-center gap-1 transition"
-                    >
-                      <span>{item.actionLabel}</span>
-                      <ArrowUpRight className="w-3 h-3" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
-              {actionQueueItems.length === 0 && (
-                <div className="col-span-full py-4 text-center text-xs text-[#737373] italic">
-                  All upcoming exam dates, interview preps, and deadlines are up to date!
-                </div>
-              )}
+                    <div className="text-right shrink-0 bg-[#0B0B0B] p-2.5 rounded-xl border border-white/5">
+                      <span className="text-base font-bold font-mono text-[#C3195D] block">{exam.daysLeft}d</span>
+                      <span className="text-[9px] text-[#BFC3C7] font-mono">remaining</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* SECTION 2: WHERE HAVE I APPLIED? (UNIVERSAL MASTER RECORD DIRECTORY) */}
+          {/* DASHBOARD INTEGRATION WIDGET 2: CRITICAL REGISTRATION DEADLINES */}
+          {criticalDeadlines.length > 0 && (
+            <div className="bg-[#0B0B0B] border border-[#E2B85C]/30 p-4 rounded-2xl flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-[#E2B85C] shrink-0" />
+                <div>
+                  <h3 className="text-xs font-bold text-[#EFECEC]">Critical Registration Deadline Alert</h3>
+                  <p className="text-xs text-[#BFC3C7] mt-0.5">{criticalDeadlines[0].title}</p>
+                </div>
+              </div>
+              <Link
+                href={`/applications/${criticalDeadlines[0].appId}`}
+                className="px-3 py-1.5 rounded-xl bg-[#E2B85C] hover:bg-[#c99f45] text-[#0B0B0B] text-xs font-bold transition shrink-0"
+              >
+                Complete Registration
+              </Link>
+            </div>
+          )}
+
+          {/* MASTER DIRECTORY TABLE WITH VISUAL JOURNEY PROGRESS */}
           <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-[#C3195D]" />
                 <h2 className="text-xs font-semibold text-[#EFECEC] tracking-wide uppercase font-mono">
-                  2. Master Application Directory
+                  Master Application Directory
                 </h2>
               </div>
 
@@ -347,12 +372,10 @@ export default function CareerCRMHomePage() {
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="border-b border-white/5 text-[#BFC3C7] uppercase text-[10px] font-mono tracking-wider">
-                    <th className="pb-2.5 px-3">Type</th>
+                    <th className="pb-2.5 px-3">Category</th>
                     <th className="pb-2.5 px-3">Organization & Title</th>
-                    <th className="pb-2.5 px-3">Location / Mode</th>
-                    <th className="pb-2.5 px-3">Resume Linked</th>
-                    <th className="pb-2.5 px-3">Pipeline Stage</th>
-                    <th className="pb-2.5 px-3">Registered Date</th>
+                    <th className="pb-2.5 px-3">Current Status</th>
+                    <th className="pb-2.5 px-3">Visual Journey Progress</th>
                     <th className="pb-2.5 px-3 text-right">Progress Step</th>
                   </tr>
                 </thead>
@@ -360,19 +383,21 @@ export default function CareerCRMHomePage() {
                   {filteredApps.slice(0, 10).map((app) => {
                     const companyName = app.jobPosting?.company?.name || 'Organization';
                     const role = app.jobPosting?.role || 'Opportunity';
-                    const location = app.jobPosting?.location || 'Remote';
                     const typeConfig = APPLICATION_TYPES[app.appType || 'JOB'] || APPLICATION_TYPES.JOB;
                     const badge = getStageBadgeForType(app.appType, app.status);
 
+                    // Compute current visual journey index
+                    const currentStageIndex = typeConfig.stages.findIndex((s) => s.id === app.status);
+
                     return (
                       <tr key={app.id} className="hover:bg-[#1A1A1A]/60 transition">
-                        <td className="py-2.5 px-3">
-                          <span className="text-[10px] font-medium text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5">
+                        <td className="py-3 px-3">
+                          <span className="text-[10px] font-medium text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5 font-mono">
                             {typeConfig.label.split(' ')[0]}
                           </span>
                         </td>
 
-                        <td className="py-2.5 px-3">
+                        <td className="py-3 px-3">
                           <Link href={`/applications/${app.id}`} className="flex items-center gap-2.5">
                             <div className="w-6 h-6 rounded-md bg-[#1A1A1A] border border-white/5 flex items-center justify-center font-bold text-[#C3195D] text-[10px] shrink-0">
                               {companyName.substring(0, 2).toUpperCase()}
@@ -386,31 +411,45 @@ export default function CareerCRMHomePage() {
                           </Link>
                         </td>
 
-                        <td className="py-2.5 px-3 text-[#BFC3C7]">
-                          <span className="block text-[#EFECEC] font-medium">{location}</span>
-                        </td>
-
-                        <td className="py-2.5 px-3">
-                          {typeConfig.requiresResume ? (
-                            <span className="font-mono text-[#62929A] bg-[#1A1A1A] px-2 py-0.5 rounded border border-white/5 text-[11px]">
-                              {app.resume?.title || 'Linked'}
-                            </span>
-                          ) : (
-                            <span className="text-[#737373] text-[10px] italic">N/A (Not Required)</span>
-                          )}
-                        </td>
-
-                        <td className="py-2.5 px-3">
+                        <td className="py-3 px-3">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${badge.color}`}>
                             {badge.label}
                           </span>
                         </td>
 
-                        <td className="py-2.5 px-3 text-[#737373] font-mono text-[11px]">
-                          {formatDate(app.applicationDate)}
+                        {/* SIGNATURE VISUAL JOURNEY TIMELINE BAR */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-1">
+                            {typeConfig.stages.slice(0, 6).map((stage, idx) => {
+                              const isCompleted = idx <= currentStageIndex;
+                              const isCurrent = idx === currentStageIndex;
+
+                              return (
+                                <div key={stage.id} className="flex items-center">
+                                  <div
+                                    title={stage.label}
+                                    className={`w-2.5 h-2.5 rounded-full transition ${
+                                      isCurrent
+                                        ? 'bg-[#C3195D] ring-2 ring-[#C3195D]/40 scale-110'
+                                        : isCompleted
+                                        ? 'bg-[#C3195D]/70'
+                                        : 'bg-white/10'
+                                    }`}
+                                  />
+                                  {idx < Math.min(typeConfig.stages.length, 6) - 1 && (
+                                    <div
+                                      className={`w-3 h-0.5 ${
+                                        idx < currentStageIndex ? 'bg-[#C3195D]/70' : 'bg-white/10'
+                                      }`}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </td>
 
-                        <td className="py-2.5 px-3 text-right">
+                        <td className="py-3 px-3 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleQuickStatusUpdate(app.id, app.status, app.appType || 'JOB')}
@@ -432,50 +471,6 @@ export default function CareerCRMHomePage() {
                   })}
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          {/* SECTION 3: WHAT HAPPENED? (LIVE ACTIVITY LOG) */}
-          <div className="bg-[#0B0B0B] border border-white/5 rounded-2xl p-5 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-[#62929A]" />
-                <h2 className="text-xs font-semibold text-[#EFECEC] tracking-wide uppercase font-mono">
-                  3. What Happened? (Chronological Career Stream)
-                </h2>
-              </div>
-              <span className="text-[10px] font-mono text-[#737373]">Live Events</span>
-            </div>
-
-            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-              {allEvents.slice(0, 8).map((ev) => (
-                <div
-                  key={ev.id}
-                  className="bg-[#1A1A1A] border border-white/5 p-3 rounded-xl flex items-start justify-between gap-4"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-[#62929A] mt-1.5 shrink-0" />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-[#EFECEC]">{ev.companyName}</span>
-                        <span className="text-[11px] text-[#BFC3C7]">• {ev.role}</span>
-                      </div>
-                      <h4 className="text-xs text-[#EFECEC] font-medium mt-0.5">{ev.title}</h4>
-                      {ev.description && <p className="text-[11px] text-[#BFC3C7] mt-0.5">{ev.description}</p>}
-                    </div>
-                  </div>
-
-                  <div className="text-right shrink-0">
-                    <span className="text-[10px] font-mono text-[#737373] block">{formatDate(ev.date)}</span>
-                    <Link
-                      href={`/applications/${ev.appId}`}
-                      className="text-[10px] font-medium text-[#C3195D] hover:underline block mt-0.5"
-                    >
-                      Record →
-                    </Link>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </>

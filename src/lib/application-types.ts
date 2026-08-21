@@ -13,9 +13,35 @@ export interface ApplicationTypeConfig {
     locationLabel?: string;
     showJobUrl?: boolean;
     urlLabel?: string;
+    notesLabel?: string;
+    notesPlaceholder?: string;
   };
   stages: { id: string; label: string; color: string }[];
 }
+
+export const EXAM_APPLICATION_STATUSES = [
+  { id: 'PLANNING', label: 'Planning', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
+  { id: 'REGISTRATION_OPEN', label: 'Registration Open', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
+  { id: 'EXAM_REGISTERED', label: 'Applied / Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
+  { id: 'FEE_PAID', label: 'Fee Paid', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
+  { id: 'ADMIT_CARD_RELEASED', label: 'Admit Card Released', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
+  { id: 'EXAM_COMPLETED', label: 'Exam Completed', color: 'bg-[#62929A]/30 text-[#62929A] border-[#62929A]' },
+  { id: 'RESULT_DECLARED', label: 'Result Awaiting / Declared', color: 'bg-[#E2B85C]/20 text-[#E2B85C] border-[#E2B85C]/40' },
+  { id: 'QUALIFIED', label: 'Qualified', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
+  { id: 'NOT_QUALIFIED', label: 'Not Qualified', color: 'bg-[#D96C6C]/15 text-[#D96C6C] border-[#D96C6C]/30' },
+  { id: 'COUNSELLING', label: 'Counselling', color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D]' },
+  { id: 'EXAM_ADMISSION', label: 'Admission Confirmed', color: 'bg-[#6CBF84]/40 text-[#EFECEC] border-[#6CBF84]' },
+] as const;
+
+export const VISUAL_JOURNEY_STAGES = [
+  { id: 'EXAM_REGISTERED', label: 'Registered' },
+  { id: 'FEE_PAID', label: 'Fee Paid' },
+  { id: 'ADMIT_CARD_RELEASED', label: 'Admit Card' },
+  { id: 'EXAM_COMPLETED', label: 'Exam Day' },
+  { id: 'RESULT_DECLARED', label: 'Result' },
+  { id: 'COUNSELLING', label: 'Counselling' },
+  { id: 'EXAM_ADMISSION', label: 'Admission' },
+] as const;
 
 export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   JOB: {
@@ -32,7 +58,9 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       showLocation: true,
       locationLabel: 'Location',
       showJobUrl: true,
-      urlLabel: 'Job Posting Link',
+      urlLabel: 'Official Website',
+      notesLabel: 'Private Notes',
+      notesPlaceholder: 'e.g. Follow up next week with recruiter...',
     },
     stages: [
       { id: 'APPLIED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
@@ -51,28 +79,20 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   EXAM: {
     id: 'EXAM',
     label: 'Competitive Exam',
-    description: 'GATE, CAT, UPSC, GRE, Government & Entrance Examinations',
+    description: 'GATE, CAT, UPSC, GRE, Government & Placement Examinations',
     iconName: 'FileText',
     requiresResume: false,
     fields: {
       primaryLabel: 'Conducting Organization *',
       secondaryLabel: 'Exam Name *',
       showSalary: false,
-      showLocation: true,
-      locationLabel: 'Exam Center City',
+      showLocation: false,
       showJobUrl: true,
-      urlLabel: 'Official Exam Portal Link',
+      urlLabel: 'Official Website',
+      notesLabel: 'Preparation Notes',
+      notesPlaceholder: 'e.g. Revise DBMS & Networks, Print admit card, Reach center 1 hour early, Carry calculator, Solve Mock Test 8...',
     },
-    stages: [
-      { id: 'EXAM_REGISTERED', label: 'Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-      { id: 'FEE_PAID', label: 'Fee Paid', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-      { id: 'ADMIT_CARD_RELEASED', label: 'Admit Card Released', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
-      { id: 'EXAM_COMPLETED', label: 'Exam Completed', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
-      { id: 'RESULT_DECLARED', label: 'Result Declared', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-      { id: 'QUALIFIED', label: 'Qualified', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
-      { id: 'COUNSELLING', label: 'Counselling Round', color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D]' },
-      { id: 'EXAM_ADMISSION', label: 'Admission Secured', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
-    ],
+    stages: [...EXAM_APPLICATION_STATUSES],
   },
 
   COLLEGE: {
@@ -88,7 +108,9 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       showLocation: true,
       locationLabel: 'Campus City / Location',
       showJobUrl: true,
-      urlLabel: 'University Portal Link',
+      urlLabel: 'Official Website',
+      notesLabel: 'Preparation & Admission Notes',
+      notesPlaceholder: 'e.g. Keep GATE scorecard ready, Submit transcript copy...',
     },
     stages: [
       { id: 'APP_SUBMITTED', label: 'Application Submitted', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
@@ -114,7 +136,9 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       showLocation: true,
       locationLabel: 'Venue / Online Platform',
       showJobUrl: true,
-      urlLabel: 'Event / CTF Link',
+      urlLabel: 'Official Website',
+      notesLabel: 'Preparation Notes',
+      notesPlaceholder: 'e.g. Set up Burp Suite & Wireshark, prepare presentation slides...',
     },
     stages: [
       { id: 'HACK_REGISTERED', label: 'Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
@@ -140,7 +164,9 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       showLocation: true,
       locationLabel: 'State / Location',
       showJobUrl: true,
-      urlLabel: 'Portal URL (e.g. ebsb.aicte-india.org)',
+      urlLabel: 'Official Website',
+      notesLabel: 'Preparation Notes',
+      notesPlaceholder: 'e.g. Bring hard copy of application form & ID card...',
     },
     stages: [
       { id: 'FELLOW_APPLIED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
@@ -165,7 +191,9 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       showSalary: false,
       showLocation: false,
       showJobUrl: true,
-      urlLabel: 'Exam Portal / Voucher Link',
+      urlLabel: 'Official Website',
+      notesLabel: 'Preparation Notes',
+      notesPlaceholder: 'e.g. Complete Udemy practice exams, review flashcards...',
     },
     stages: [
       { id: 'CERT_REGISTERED', label: 'Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
@@ -189,7 +217,9 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       showLocation: true,
       locationLabel: 'Location',
       showJobUrl: true,
-      urlLabel: 'Portal / Info Link',
+      urlLabel: 'Official Website',
+      notesLabel: 'Notes',
+      notesPlaceholder: 'e.g. Key milestone dates and instructions...',
     },
     stages: [
       { id: 'CUSTOM_SAVED', label: 'Saved', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
