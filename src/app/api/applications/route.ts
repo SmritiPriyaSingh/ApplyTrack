@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, ensureDbInitialized } from '@/lib/prisma';
 import { getApplicationTypeConfig } from '@/lib/application-types';
 
 export async function GET(request: Request) {
   try {
+    await ensureDbInitialized();
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query') || '';
     const status = searchParams.get('status');
@@ -104,6 +106,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    await ensureDbInitialized();
+
     const body = await request.json();
     const {
       status,
@@ -128,7 +132,7 @@ export async function POST(request: Request) {
     let user = await prisma.user.findFirst();
     if (!user) {
       user = await prisma.user.create({
-        data: { name: 'Smriti Priya Singh', email: 'smriti@example.com' },
+        data: { id: 'user_default_smriti', name: 'Smriti Priya Singh', email: 'smriti@example.com' },
       });
     }
 

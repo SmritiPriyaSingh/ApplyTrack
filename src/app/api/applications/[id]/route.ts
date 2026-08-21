@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, ensureDbInitialized } from '@/lib/prisma';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    await ensureDbInitialized();
+
     const application = await prisma.application.findUnique({
       where: { id: params.id },
       include: {
@@ -50,8 +52,10 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    await ensureDbInitialized();
+
     const body = await request.json();
-    const { status, notes, replyStatus, replyChannel, isGhosted, resumeId, newEvent, newFollowUp } = body;
+    const { status, notes, replyStatus, replyChannel, isGhosted, resumeId, newEvent, newFollowUp, extraData } = body;
 
     const existingApp = await prisma.application.findUnique({
       where: { id: params.id },
@@ -68,6 +72,7 @@ export async function PATCH(
     if (replyChannel !== undefined) updateData.replyChannel = replyChannel;
     if (isGhosted !== undefined) updateData.isGhosted = isGhosted;
     if (resumeId !== undefined) updateData.resumeId = resumeId;
+    if (extraData !== undefined) updateData.extraData = typeof extraData === 'string' ? extraData : JSON.stringify(extraData);
 
     // If status changed, record status history log & event
     if (status && status !== existingApp.status) {
@@ -149,6 +154,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    await ensureDbInitialized();
+
     await prisma.application.delete({
       where: { id: params.id },
     });
