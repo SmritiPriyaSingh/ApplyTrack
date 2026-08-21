@@ -1,7 +1,6 @@
 export interface ApplicationTypeConfig {
   id: string;
   label: string;
-  modalTitle: string;
   description: string;
   iconName: string;
   requiresResume: boolean;
@@ -34,25 +33,20 @@ export const EXAM_APPLICATION_STATUSES = [
   { id: 'EXAM_ADMISSION', label: 'Admission Confirmed', color: 'bg-[#6CBF84]/40 text-[#EFECEC] border-[#6CBF84]' },
 ] as const;
 
-export const COLLEGE_APPLICATION_STATUSES = [
-  { id: 'PLANNING', label: 'Planning', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
-  { id: 'APP_SUBMITTED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-  { id: 'DOCS_VERIFIED', label: 'Documents Submitted & Verified', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-  { id: 'ENTRANCE_EXAM', label: 'Entrance Exam / Cutoff', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
-  { id: 'SHORTLISTED', label: 'Shortlisted', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
-  { id: 'COLLEGE_INTERVIEW', label: 'Interview', color: 'bg-[#62929A]/30 text-[#62929A] border-[#62929A]' },
-  { id: 'OFFER_LETTER', label: 'Offer Letter Received', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
-  { id: 'COLLEGE_FEE_PAID', label: 'Fee Paid', color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D]' },
-  { id: 'ENROLLED', label: 'Admitted / Enrolled', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
-  { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/15 text-[#D96C6C] border-[#D96C6C]/30' },
-  { id: 'WAITLISTED', label: 'Waitlisted', color: 'bg-[#E2B85C]/30 text-[#E2B85C] border-[#E2B85C]' },
+export const VISUAL_JOURNEY_STAGES = [
+  { id: 'EXAM_REGISTERED', label: 'Registered' },
+  { id: 'FEE_PAID', label: 'Fee Paid' },
+  { id: 'ADMIT_CARD_RELEASED', label: 'Admit Card' },
+  { id: 'EXAM_COMPLETED', label: 'Exam Day' },
+  { id: 'RESULT_DECLARED', label: 'Result' },
+  { id: 'COUNSELLING', label: 'Counselling' },
+  { id: 'EXAM_ADMISSION', label: 'Admission' },
 ] as const;
 
 export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   JOB: {
     id: 'JOB',
     label: 'Job Application',
-    modalTitle: 'Track Job Application',
     description: 'Corporate, Full-Time, Internship & Contract Job Opportunities',
     iconName: 'Briefcase',
     requiresResume: true,
@@ -85,7 +79,6 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   EXAM: {
     id: 'EXAM',
     label: 'Competitive Exam',
-    modalTitle: 'Track Competitive Exam',
     description: 'GATE, CAT, UPSC, GRE, Government & Placement Examinations',
     iconName: 'FileText',
     requiresResume: false,
@@ -104,29 +97,35 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
 
   COLLEGE: {
     id: 'COLLEGE',
-    label: 'College Admission',
-    modalTitle: 'Track College Admission',
-    description: 'IIT, NIT, VIT, IIIT, M.Tech, MS & University Admissions',
+    label: 'College / University Admission',
+    description: 'IIT, NIT, VIT, IIIT, M.Tech, MS & University Applications',
     iconName: 'GraduationCap',
     requiresResume: false,
     fields: {
       primaryLabel: 'College / Institute Name *',
-      secondaryLabel: 'Degree Name *',
+      secondaryLabel: 'Course / Degree Name *',
       showSalary: false,
       showLocation: true,
       locationLabel: 'Campus City / Location',
       showJobUrl: true,
       urlLabel: 'Official Website',
-      notesLabel: 'Admission & Prep Notes',
-      notesPlaceholder: 'e.g. Keep GATE scorecard ready, Submit semester transcripts, Verify hostel fee deadline...',
+      notesLabel: 'Preparation & Admission Notes',
+      notesPlaceholder: 'e.g. Keep GATE scorecard ready, Submit transcript copy...',
     },
-    stages: [...COLLEGE_APPLICATION_STATUSES],
+    stages: [
+      { id: 'APP_SUBMITTED', label: 'Application Submitted', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
+      { id: 'DOCS_VERIFIED', label: 'Documents Verified', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
+      { id: 'ENTRANCE_EXAM', label: 'Entrance Exam / Cutoff', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
+      { id: 'COLLEGE_INTERVIEW', label: 'Interview Round', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
+      { id: 'OFFER_LETTER', label: 'Offer Letter Received', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
+      { id: 'COLLEGE_FEE_PAID', label: 'Seat Fee Paid', color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D]' },
+      { id: 'ENROLLED', label: 'Enrolled', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
+    ],
   },
 
   HACKATHON: {
     id: 'HACKATHON',
-    label: 'Hackathon / CTF',
-    modalTitle: 'Track Hackathon / CTF',
+    label: 'Hackathon / CTF / Competition',
     description: 'Cybersecurity CTFs, Smart India Hackathon & Hackathons',
     iconName: 'Trophy',
     requiresResume: false,
@@ -155,7 +154,6 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   FELLOWSHIP: {
     id: 'FELLOWSHIP',
     label: 'Fellowship / Govt Program',
-    modalTitle: 'Track Program / Fellowship',
     description: 'Yuva Sangam, GSoC, PM Internship & Government Schemes',
     iconName: 'Globe',
     requiresResume: false,
@@ -184,7 +182,6 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   CERTIFICATION: {
     id: 'CERTIFICATION',
     label: 'Certification Exam',
-    modalTitle: 'Track Certification Exam',
     description: 'AWS, CompTIA Security+, CEH, CISSP & Professional Badges',
     iconName: 'Award',
     requiresResume: false,
@@ -210,7 +207,6 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   CUSTOM: {
     id: 'CUSTOM',
     label: 'Custom Application',
-    modalTitle: 'Track Custom Opportunity',
     description: 'General Projects, Grants & Custom Tracking Opportunities',
     iconName: 'Folder',
     requiresResume: false,

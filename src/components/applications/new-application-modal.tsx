@@ -20,14 +20,14 @@ import {
   DollarSign,
   CheckSquare,
   Square,
+  ShieldAlert,
   CreditCard,
   FileCheck,
+  ExternalLink,
   Plus,
-  Home,
-  TrendingUp,
-  School
+  FileCheck2
 } from 'lucide-react';
-import { APPLICATION_TYPES, ApplicationTypeConfig } from '@/lib/application-types';
+import { APPLICATION_TYPES, ApplicationTypeConfig, EXAM_APPLICATION_STATUSES } from '@/lib/application-types';
 import { WORK_MODES, JOB_TYPES, SOURCES } from '@/lib/constants';
 
 interface NewApplicationModalProps {
@@ -69,20 +69,15 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   const [priority, setPriority] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('HIGH');
   const [appStatus, setAppStatus] = useState<string>('');
   const [extraData, setExtraData] = useState<Record<string, any>>({
+    bond: 'None',
     feeStatus: 'Pending',
-    scholarshipStatus: 'Pending',
-    hostelRequired: 'Yes',
-    hostelAllocated: 'Pending',
-    admissionBasis: 'GATE',
     docsChecklist: {
-      mark10: false,
-      mark12: false,
-      gradDegree: false,
-      scorecard: false,
       aadhaar: false,
       photo: false,
+      signature: false,
       categoryCert: false,
-      incomeCert: false,
+      degreeCert: false,
+      paymentReceipt: false,
     },
   });
 
@@ -121,10 +116,9 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
   }, [isOpen]);
 
   useEffect(() => {
+    // Set default status when type changes
     if (selectedType === 'EXAM') {
       setAppStatus('EXAM_REGISTERED');
-    } else if (selectedType === 'COLLEGE') {
-      setAppStatus('APP_SUBMITTED');
     } else {
       setAppStatus(config.stages[0]?.id || 'APPLIED');
     }
@@ -264,7 +258,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
             )}
             <div>
               <h2 className="text-sm font-semibold text-[#EFECEC]">
-                {step === 1 ? 'What are you applying for?' : config.modalTitle}
+                {step === 1 ? 'What are you applying for?' : `Add ${config.label}`}
               </h2>
               <p className="text-[11px] text-[#BFC3C7]">
                 {step === 1 ? 'Step 1 of 2: Select opportunity type' : `Step 2 of 2: Fill details for ${config.label}`}
@@ -336,7 +330,7 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
             <div className="grid grid-cols-3 gap-3 bg-[#0B0B0B] p-3 rounded-xl border border-white/5">
               <div className="col-span-2">
                 <label className="block text-[11px] font-bold text-[#C3195D] mb-1 font-mono uppercase tracking-wider">
-                  {selectedType === 'COLLEGE' ? 'Admission Status' : 'Application Status'}
+                  Application Status
                 </label>
                 <select
                   value={appStatus}
@@ -377,10 +371,14 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     type="text"
                     required
                     placeholder={
-                      selectedType === 'COLLEGE'
-                        ? 'e.g. IIT Bombay, NIT Trichy, VIT'
-                        : selectedType === 'EXAM'
+                      selectedType === 'EXAM'
                         ? 'e.g. NTA, IIT Bombay, UPSC'
+                        : selectedType === 'COLLEGE'
+                        ? 'e.g. IIT Madras, NIT Trichy, VIT'
+                        : selectedType === 'HACKATHON'
+                        ? 'e.g. HackTheBox, Smart India Hackathon'
+                        : selectedType === 'FELLOWSHIP'
+                        ? 'e.g. Ministry of Education (AICTE Yuva Sangam)'
                         : 'e.g. CrowdStrike, Microsoft'
                     }
                     value={formData.companyName}
@@ -398,10 +396,14 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
                     type="text"
                     required
                     placeholder={
-                      selectedType === 'COLLEGE'
-                        ? 'e.g. M.Tech, B.Tech, MS, MBA'
-                        : selectedType === 'EXAM'
+                      selectedType === 'EXAM'
                         ? 'e.g. GATE Computer Science 2026'
+                        : selectedType === 'COLLEGE'
+                        ? 'e.g. M.Tech Computer Science / AI'
+                        : selectedType === 'HACKATHON'
+                        ? 'e.g. National Cyber Defense CTF'
+                        : selectedType === 'FELLOWSHIP'
+                        ? 'e.g. Yuva Sangam Exposure Visit'
                         : 'e.g. SOC Analyst / Security Engineer'
                     }
                     value={formData.role}
@@ -412,340 +414,288 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
             </div>
 
-            {/* TYPE 3: COLLEGE ADMISSION DETAILED FIELDS */}
-            {selectedType === 'COLLEGE' && (
-              <div className="space-y-4">
-                {/* 1. COURSE & SPECIALIZATION GRANULARITY */}
-                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
-                  <span className="text-[10px] uppercase font-bold text-[#62929A] tracking-wider block flex items-center gap-1.5">
-                    <GraduationCap className="w-3.5 h-3.5" />
-                    <span>Branch & Specialization</span>
-                  </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Branch</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Computer Science & Engineering"
-                        value={formData.department}
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Specialization</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Cyber Security / AI & ML"
-                        value={extraData.specialization || ''}
-                        onChange={(e) => setExtraData({ ...extraData, specialization: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                  </div>
-                </div>
+            {/* TYPE 1: JOB APPLICATION SPECIFIC CORPORATE FIELDS */}
+            {selectedType === 'JOB' && (
+              <div className="space-y-4 bg-[#0B0B0B] p-4 rounded-xl border border-white/5">
+                <span className="text-[10px] uppercase font-bold text-[#C3195D] tracking-wider block flex items-center gap-1.5 font-mono">
+                  <DollarSign className="w-3.5 h-3.5" />
+                  <span>Salary Package, Location, Work Mode & Service Bond</span>
+                </span>
 
-                {/* 2. FEES BREAKDOWN */}
-                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
-                  <span className="text-[10px] uppercase font-bold text-[#6CBF84] tracking-wider block flex items-center gap-1.5">
-                    <CreditCard className="w-3.5 h-3.5" />
-                    <span>Detailed Fee Breakdown</span>
-                  </span>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Tuition Fee</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Salary Package (CTC)</label>
+                    <div className="relative">
+                      <DollarSign className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
                       <input
                         type="text"
-                        placeholder="e.g. ₹1,80,000 / year"
-                        value={extraData.tuitionFee || ''}
-                        onChange={(e) => setExtraData({ ...extraData, tuitionFee: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Hostel Fee</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. ₹90,000 / year"
-                        value={extraData.hostelFee || ''}
-                        onChange={(e) => setExtraData({ ...extraData, hostelFee: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#6CBF84] font-bold mb-1">Net Payable Fee</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. ₹2,20,000 / year"
+                        placeholder="e.g. ₹12 LPA / $135,000 /yr"
                         value={formData.package}
                         onChange={(e) => setFormData({ ...formData, package: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-[#6CBF84]/40 rounded-xl text-xs text-[#EFECEC]"
+                        className="w-full pl-9 pr-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Service / Contract Bond</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. None / 1 Year Bond / 2 Year Service Agreement"
+                      value={extraData.bond || ''}
+                      onChange={(e) => setExtraData({ ...extraData, bond: e.target.value })}
+                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Job Location</label>
+                    <div className="relative">
+                      <MapPin className="w-3.5 h-3.5 text-[#BFC3C7] absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        placeholder="e.g. Indore, MP / San Francisco, CA"
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        className="w-full pl-9 pr-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Work Mode (Hybrid / Onsite)</label>
+                    <select
+                      value={formData.workMode}
+                      onChange={(e) => setFormData({ ...formData, workMode: e.target.value })}
+                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                    >
+                      {WORK_MODES.map((mode) => (
+                        <option key={mode.id} value={mode.id} className="bg-[#0B0B0B] text-[#EFECEC]">{mode.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-[#BFC3C7] mb-1">Job Type</label>
+                    <select
+                      value={formData.jobType}
+                      onChange={(e) => setFormData({ ...formData, jobType: e.target.value })}
+                      className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                    >
+                      {JOB_TYPES.map((type) => (
+                        <option key={type.id} value={type.id} className="bg-[#0B0B0B] text-[#EFECEC]">{type.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TYPE 2: COMPETITIVE EXAM FULL LIFECYCLE FIELDS */}
+            {selectedType === 'EXAM' && (
+              <div className="space-y-4">
+                {/* 1. REGISTRATION WINDOWS & DEADLINES */}
+                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
+                  <span className="text-[10px] uppercase font-bold text-[#C3195D] tracking-wider block flex items-center gap-1.5 font-mono">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Registration Deadlines & Critical Windows</span>
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Registration Opens</label>
+                      <input
+                        type="date"
+                        value={extraData.regOpenDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, regOpenDate: e.target.value })}
+                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#C3195D] font-bold mb-1">Registration Closes *</label>
+                      <input
+                        type="date"
+                        value={extraData.regCloseDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, regCloseDate: e.target.value })}
+                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-[#C3195D]/40 rounded-lg text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Late Reg. Date</label>
+                      <input
+                        type="date"
+                        value={extraData.lateRegDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, lateRegDate: e.target.value })}
+                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Correction Window</label>
+                      <input
+                        type="date"
+                        value={extraData.correctionDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, correctionDate: e.target.value })}
+                        className="w-full px-2.5 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* 3. SCHOLARSHIP TRACKING */}
+                {/* 2. ADMIT CARD ATTACHMENT & LINK */}
                 <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
-                  <span className="text-[10px] uppercase font-bold text-[#E2B85C] tracking-wider block flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5" />
-                    <span>Scholarship & Stipend Details</span>
+                  <span className="text-[10px] uppercase font-bold text-[#62929A] tracking-wider block flex items-center gap-1.5 font-mono">
+                    <FileCheck className="w-3.5 h-3.5" />
+                    <span>Admit Card & Download Link</span>
                   </span>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Scholarship Type</label>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Admit Card Date</label>
+                      <input
+                        type="date"
+                        value={extraData.admitCardDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, admitCardDate: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Admit Card Link / URL</label>
                       <input
                         type="text"
-                        placeholder="e.g. Merit / GATE Stipend"
-                        value={extraData.scholarshipType || ''}
-                        onChange={(e) => setExtraData({ ...extraData, scholarshipType: e.target.value })}
+                        placeholder="e.g. https://gate2026.iitb.ac.in/admitcard"
+                        value={extraData.admitCardLink || ''}
+                        onChange={(e) => setExtraData({ ...extraData, admitCardLink: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Device PDF Uploader for Admit Card */}
+                  <div
+                    onClick={() => admitCardInputRef.current?.click()}
+                    className="flex items-center justify-between border border-dashed border-white/10 hover:border-[#62929A]/50 bg-[#1A1A1A] p-3 rounded-xl cursor-pointer transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <UploadCloud className="w-4 h-4 text-[#62929A]" />
+                      <span className="text-xs text-[#EFECEC]">
+                        {admitCardFileName ? `Admit Card Attached: ${admitCardFileName}` : 'Upload Admit Card (PDF Document)'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-[#737373]">Click to upload PDF</span>
+                    <input
+                      type="file"
+                      ref={admitCardInputRef}
+                      accept=".pdf"
+                      onChange={handleAdmitCardFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+
+                {/* 3. FEE PAYMENT & TRANSACTION DETAILS */}
+                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
+                  <span className="text-[10px] uppercase font-bold text-[#6CBF84] tracking-wider block flex items-center gap-1.5 font-mono">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Fee Payment Details</span>
+                  </span>
+                  <div className="grid grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Application Fee</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. ₹1,800"
+                        value={formData.package}
+                        onChange={(e) => setFormData({ ...formData, package: e.target.value })}
                         className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Value / Amount</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. ₹12,400 / month"
-                        value={extraData.scholarshipAmount || ''}
-                        onChange={(e) => setExtraData({ ...extraData, scholarshipAmount: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Status</label>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Status</label>
                       <select
-                        value={extraData.scholarshipStatus || 'Pending'}
-                        onChange={(e) => setExtraData({ ...extraData, scholarshipStatus: e.target.value })}
+                        value={extraData.feeStatus || 'Pending'}
+                        onChange={(e) => setExtraData({ ...extraData, feeStatus: e.target.value })}
                         className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
                       >
-                        <option value="Approved" className="bg-[#0B0B0B]">✓ Approved</option>
                         <option value="Pending" className="bg-[#0B0B0B]">○ Pending</option>
-                        <option value="Not Applied" className="bg-[#0B0B0B]">✕ Not Applied</option>
+                        <option value="Paid" className="bg-[#0B0B0B]">✓ Paid</option>
                       </select>
                     </div>
-                  </div>
-                </div>
-
-                {/* 4. ADMISSION CRITICAL DATES */}
-                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
-                  <span className="text-[10px] uppercase font-bold text-[#C3195D] tracking-wider block flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Admission Deadlines & Key Dates</span>
-                  </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                     <div>
-                      <label className="block text-[9px] text-[#BFC3C7] mb-1">Applied On</label>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Payment Date</label>
                       <input
                         type="date"
-                        value={extraData.appliedOnDate || ''}
-                        onChange={(e) => setExtraData({ ...extraData, appliedOnDate: e.target.value })}
-                        className="w-full px-2 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] text-[#C3195D] font-bold mb-1">Deadline *</label>
-                      <input
-                        type="date"
-                        value={extraData.deadline || ''}
-                        onChange={(e) => setExtraData({ ...extraData, deadline: e.target.value })}
-                        className="w-full px-2 py-1 bg-[#1A1A1A] border border-[#C3195D]/40 rounded-lg text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] text-[#BFC3C7] mb-1">Counselling</label>
-                      <input
-                        type="date"
-                        value={extraData.counsellingDate || ''}
-                        onChange={(e) => setExtraData({ ...extraData, counsellingDate: e.target.value })}
-                        className="w-full px-2 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] text-[#BFC3C7] mb-1">Offer Date</label>
-                      <input
-                        type="date"
-                        value={extraData.offerDate || ''}
-                        onChange={(e) => setExtraData({ ...extraData, offerDate: e.target.value })}
-                        className="w-full px-2 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] text-[#BFC3C7] mb-1">Reporting</label>
-                      <input
-                        type="date"
-                        value={extraData.reportingDate || ''}
-                        onChange={(e) => setExtraData({ ...extraData, reportingDate: e.target.value })}
-                        className="w-full px-2 py-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 5. LOCATION & MULTI-CAMPUS BREAKDOWN */}
-                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
-                  <span className="text-[10px] uppercase font-bold text-[#EFECEC] tracking-wider block flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#C3195D]" />
-                    <span>State, City & Specific Campus</span>
-                  </span>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">State</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Tamil Nadu / Maharashtra"
-                        value={extraData.state || ''}
-                        onChange={(e) => setExtraData({ ...extraData, state: e.target.value })}
+                        value={extraData.feePaymentDate || ''}
+                        onChange={(e) => setExtraData({ ...extraData, feePaymentDate: e.target.value })}
                         className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">City</label>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Transaction ID</label>
                       <input
                         type="text"
-                        placeholder="e.g. Vellore / Mumbai"
+                        placeholder="e.g. TXN9841203"
+                        value={extraData.transactionId || ''}
+                        onChange={(e) => setExtraData({ ...extraData, transactionId: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. EXAM CENTER BREAKDOWN */}
+                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
+                  <span className="text-[10px] uppercase font-bold text-[#E2B85C] tracking-wider block flex items-center gap-1.5 font-mono">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>Exam Center Breakdown</span>
+                  </span>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Preferred City</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Indore / Bhopal"
                         value={formData.location}
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                         className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Campus</label>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Allocated Center</label>
                       <input
                         type="text"
-                        placeholder="e.g. Vellore Main Campus"
-                        value={extraData.campus || ''}
-                        onChange={(e) => setExtraData({ ...extraData, campus: e.target.value })}
+                        placeholder="e.g. ION Digital Zone iDZ 1"
+                        value={extraData.allocatedCenter || ''}
+                        onChange={(e) => setExtraData({ ...extraData, allocatedCenter: e.target.value })}
+                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Center Address</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Plot 42, Super Corridor, Indore"
+                        value={extraData.centerAddress || ''}
+                        onChange={(e) => setExtraData({ ...extraData, centerAddress: e.target.value })}
                         className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* 6. ADMISSION BASIS & ENTRANCE EXAM */}
-                <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
-                  <span className="text-[10px] uppercase font-bold text-[#62929A] tracking-wider block flex items-center gap-1.5">
-                    <School className="w-3.5 h-3.5" />
-                    <span>Admission Basis & Score</span>
-                  </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Admission Basis</label>
-                      <select
-                        value={extraData.admissionBasis || 'GATE'}
-                        onChange={(e) => setExtraData({ ...extraData, admissionBasis: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      >
-                        <option value="GATE" className="bg-[#0B0B0B]">GATE Score</option>
-                        <option value="College Test" className="bg-[#0B0B0B]">College Entrance Test (VITMEE/SRMJEEE)</option>
-                        <option value="Direct Admission" className="bg-[#0B0B0B]">Direct Admission</option>
-                        <option value="Management Quota" className="bg-[#0B0B0B]">Management Quota</option>
-                        <option value="Interview" className="bg-[#0B0B0B]">Interview / Merit List</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-[#BFC3C7] mb-1">Score / Rank</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. GATE Score: 720 / AIR 142"
-                        value={extraData.entranceScore || ''}
-                        onChange={(e) => setExtraData({ ...extraData, entranceScore: e.target.value })}
-                        className="w-full px-3 py-1.5 bg-[#1A1A1A] border border-white/5 rounded-xl text-xs text-[#EFECEC]"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 7. HOSTEL ALLOCATION & PLACEMENT STATS */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-[#EFECEC] tracking-wider block flex items-center gap-1.5">
-                      <Home className="w-3.5 h-3.5 text-[#C3195D]" />
-                      <span>Hostel Accommodation</span>
-                    </span>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <label className="block text-[9px] text-[#BFC3C7] mb-0.5">Required?</label>
-                        <select
-                          value={extraData.hostelRequired || 'Yes'}
-                          onChange={(e) => setExtraData({ ...extraData, hostelRequired: e.target.value })}
-                          className="w-full p-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
-                        >
-                          <option value="Yes" className="bg-[#0B0B0B]">Yes</option>
-                          <option value="No" className="bg-[#0B0B0B]">No</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[9px] text-[#BFC3C7] mb-0.5">Allocated?</label>
-                        <select
-                          value={extraData.hostelAllocated || 'Pending'}
-                          onChange={(e) => setExtraData({ ...extraData, hostelAllocated: e.target.value })}
-                          className="w-full p-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-xs text-[#EFECEC]"
-                        >
-                          <option value="Yes" className="bg-[#0B0B0B]">✓ Yes</option>
-                          <option value="No" className="bg-[#0B0B0B]">✕ No</option>
-                          <option value="Pending" className="bg-[#0B0B0B]">○ Pending</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-[#6CBF84] tracking-wider block flex items-center gap-1.5">
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      <span>Placement Stats</span>
-                    </span>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      <div>
-                        <label className="block text-[8px] text-[#BFC3C7] mb-0.5">Highest</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. ₹54 LPA"
-                          value={extraData.highestPackage || ''}
-                          onChange={(e) => setExtraData({ ...extraData, highestPackage: e.target.value })}
-                          className="w-full p-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-[10px] text-[#EFECEC]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[8px] text-[#BFC3C7] mb-0.5">Average</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. ₹14 LPA"
-                          value={extraData.avgPackage || ''}
-                          onChange={(e) => setExtraData({ ...extraData, avgPackage: e.target.value })}
-                          className="w-full p-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-[10px] text-[#EFECEC]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[8px] text-[#BFC3C7] mb-0.5">Placement %</label>
-                        <input
-                          type="text"
-                          placeholder="e.g. 94%"
-                          value={extraData.placementRate || ''}
-                          onChange={(e) => setExtraData({ ...extraData, placementRate: e.target.value })}
-                          className="w-full p-1 bg-[#1A1A1A] border border-white/5 rounded-lg text-[10px] text-[#EFECEC]"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 8. COLLEGE DOCUMENTS CHECKLIST */}
+                {/* 5. DOCUMENTS CHECKLIST */}
                 <div className="bg-[#0B0B0B] p-4 rounded-xl border border-white/5 space-y-3">
                   <span className="text-[10px] uppercase font-bold text-[#EFECEC] tracking-wider block flex items-center gap-1.5">
                     <CheckSquare className="w-3.5 h-3.5 text-[#C3195D]" />
-                    <span>Admission Documents Checklist</span>
+                    <span>Documents Checklist</span>
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                     {[
-                      { key: 'mark10', label: '10th Marksheet' },
-                      { key: 'mark12', label: '12th Marksheet' },
-                      { key: 'gradDegree', label: 'Graduation Degree' },
-                      { key: 'scorecard', label: 'GATE / Scorecard' },
-                      { key: 'aadhaar', label: 'Aadhaar Card' },
+                      { key: 'aadhaar', label: 'Aadhaar / Govt ID' },
                       { key: 'photo', label: 'Passport Photo' },
-                      { key: 'categoryCert', label: 'Category Cert' },
-                      { key: 'incomeCert', label: 'Income Cert' },
+                      { key: 'signature', label: 'Signature Image' },
+                      { key: 'categoryCert', label: 'Category Cert (OBC/EWS)' },
+                      { key: 'degreeCert', label: 'Degree / Marksheet' },
+                      { key: 'paymentReceipt', label: 'Payment Receipt' },
                     ].map((item) => {
                       const checked = extraData.docsChecklist?.[item.key] || false;
                       return (
@@ -767,12 +717,12 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
             )}
 
             {/* COMMON URL FIELD */}
-            {config.fields.showJobUrl && selectedType !== 'COLLEGE' && (
+            {config.fields.showJobUrl && (
               <div>
                 <label className="block text-xs font-medium text-[#EFECEC] mb-1">{config.fields.urlLabel}</label>
                 <input
                   type="text"
-                  placeholder="e.g. https://vit.ac.in/"
+                  placeholder="e.g. https://gate2026.iitb.ac.in/"
                   value={formData.jobUrl}
                   onChange={(e) => setFormData({ ...formData, jobUrl: e.target.value })}
                   className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -780,9 +730,73 @@ export function NewApplicationModal({ isOpen, onClose, onSuccess }: NewApplicati
               </div>
             )}
 
-            {/* PREPARATION / ADMISSION NOTES */}
+            {/* RESUME HANDLING: STRICTLY ONLY FOR JOB TYPE */}
+            {config.requiresResume ? (
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+                <div>
+                  <label className="block text-xs font-medium text-[#EFECEC] mb-1">Source</label>
+                  <select
+                    value={formData.source}
+                    onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                    className="w-full px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                  >
+                    {SOURCES.map((src) => (
+                      <option key={src} value={src} className="bg-[#0B0B0B] text-[#EFECEC]">{src}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-medium text-[#EFECEC]">Resume Submitted</label>
+                    {resumes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowInlineResumeForm(!showInlineResumeForm)}
+                        className="text-[10px] text-[#C3195D] hover:underline flex items-center gap-0.5"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Upload New</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {resumes.length > 0 ? (
+                    <div className="relative">
+                      <FileText className="w-3.5 h-3.5 text-[#62929A] absolute left-3 top-2.5" />
+                      <select
+                        value={formData.resumeId}
+                        onChange={(e) => setFormData({ ...formData, resumeId: e.target.value })}
+                        className="w-full pl-9 pr-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
+                      >
+                        <option value="">Unassigned (Select Resume)</option>
+                        {resumes.map((r) => (
+                          <option key={r.id} value={r.id} className="bg-[#0B0B0B] text-[#EFECEC]">
+                            {r.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="bg-[#0B0B0B] border border-white/5 rounded-xl p-3 text-center space-y-2">
+                      <p className="text-[11px] text-[#BFC3C7]">No resumes found in your vault.</p>
+                      <button
+                        type="button"
+                        onClick={() => setShowInlineResumeForm(true)}
+                        className="px-3.5 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-[11px] font-medium rounded-lg inline-flex items-center gap-1.5 transition shadow-sm"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>Upload Resume Document</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {/* PREPARATION / PRIVATE NOTES */}
             <div>
-              <label className="block text-xs font-medium text-[#EFECEC] mb-1">{config.fields.notesLabel || 'Notes'}</label>
+              <label className="block text-xs font-medium text-[#EFECEC] mb-1">{config.fields.notesLabel || 'Private Notes'}</label>
               <textarea
                 rows={3}
                 placeholder={config.fields.notesPlaceholder}
