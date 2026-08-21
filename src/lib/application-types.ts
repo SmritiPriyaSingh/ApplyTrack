@@ -20,16 +20,11 @@ export interface ApplicationTypeConfig {
 }
 
 export const EXAM_APPLICATION_STATUSES = [
-  { id: 'PLANNING', label: 'Planning', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
-  { id: 'REGISTRATION_OPEN', label: 'Registration Open', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
-  { id: 'EXAM_REGISTERED', label: 'Applied / Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
+  { id: 'EXAM_REGISTERED', label: 'Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
   { id: 'FEE_PAID', label: 'Fee Paid', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
-  { id: 'ADMIT_CARD_RELEASED', label: 'Admit Card Released', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
-  { id: 'EXAM_COMPLETED', label: 'Exam Completed', color: 'bg-[#62929A]/30 text-[#62929A] border-[#62929A]' },
-  { id: 'RESULT_DECLARED', label: 'Result Awaiting / Declared', color: 'bg-[#E2B85C]/20 text-[#E2B85C] border-[#E2B85C]/40' },
-  { id: 'QUALIFIED', label: 'Qualified', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
-  { id: 'NOT_QUALIFIED', label: 'Not Qualified', color: 'bg-[#D96C6C]/15 text-[#D96C6C] border-[#D96C6C]/30' },
-  { id: 'COUNSELLING', label: 'Counselling', color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D]' },
+  { id: 'ADMIT_CARD_RELEASED', label: 'Admit Card', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
+  { id: 'EXAM_COMPLETED', label: 'Exam Day', color: 'bg-[#62929A]/30 text-[#62929A] border-[#62929A]' },
+  { id: 'RESULT_DECLARED', label: 'Result', color: 'bg-[#E2B85C]/20 text-[#E2B85C] border-[#E2B85C]/40' },
   { id: 'EXAM_ADMISSION', label: 'Admission Confirmed', color: 'bg-[#6CBF84]/40 text-[#EFECEC] border-[#6CBF84]' },
 ] as const;
 
@@ -54,15 +49,10 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     },
     stages: [
       { id: 'APPLIED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-      { id: 'APPLICATION_VIEWED', label: 'Viewed', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-      { id: 'ONLINE_ASSESSMENT', label: 'Assessment', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
-      { id: 'TECHNICAL_INTERVIEW', label: 'Interview 1 (Tech)', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
-      { id: 'HR_INTERVIEW', label: 'Interview 2 (HR)', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-      { id: 'FINAL_INTERVIEW', label: 'Final Interview', color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D]' },
+      { id: 'IN_PROGRESS', label: 'In Progress', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
       { id: 'OFFER', label: 'Offer Received', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'JOINED', label: 'Joined / Accepted', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
-      { id: 'REJECTED', label: 'Rejected', color: 'bg-[#D96C6C]/15 text-[#D96C6C] border-[#D96C6C]/30' },
-      { id: 'GHOSTED', label: 'Ghosted', color: 'bg-[#0A0A0A] text-[#737373] border-white/5' },
+      { id: 'REJECTED', label: 'Closed', color: 'bg-[#D96C6C]/15 text-[#D96C6C] border-[#D96C6C]/30' },
     ],
   },
 
@@ -103,12 +93,9 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
       notesPlaceholder: 'e.g. Keep GATE scorecard ready, Submit transcript copy...',
     },
     stages: [
-      { id: 'APP_SUBMITTED', label: 'Application Submitted', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-      { id: 'DOCS_VERIFIED', label: 'Documents Verified', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-      { id: 'ENTRANCE_EXAM', label: 'Entrance Exam / Cutoff', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
-      { id: 'COLLEGE_INTERVIEW', label: 'Interview Round', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
-      { id: 'OFFER_LETTER', label: 'Offer Letter Received', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
-      { id: 'COLLEGE_FEE_PAID', label: 'Seat Fee Paid', color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D]' },
+      { id: 'APP_SUBMITTED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
+      { id: 'ENTRANCE_EXAM', label: 'Entrance / Interview', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
+      { id: 'OFFER_LETTER', label: 'Offer Letter', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'ENROLLED', label: 'Enrolled', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
     ],
   },
@@ -132,10 +119,7 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     },
     stages: [
       { id: 'HACK_REGISTERED', label: 'Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-      { id: 'TEAM_FORMED', label: 'Team Formed', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-      { id: 'ROUND_1', label: 'Round 1 / Qualifiers', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
-      { id: 'ROUND_2', label: 'Round 2 / Submissions', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
-      { id: 'FINALS', label: 'Grand Finals', color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D]' },
+      { id: 'ROUND_1', label: 'Submissions', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
       { id: 'WINNER', label: 'Winner / Winner Rank', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
       { id: 'HACK_COMPLETED', label: 'Completed', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
     ],
@@ -160,12 +144,9 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     },
     stages: [
       { id: 'FELLOW_APPLIED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-      { id: 'FELLOW_DOCS_VERIFIED', label: 'Documents Verified', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
       { id: 'SHORTLISTED', label: 'Shortlisted', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
-      { id: 'FELLOW_INTERVIEW', label: 'Interview Round', color: 'bg-[#62929A]/20 text-[#62929A] border-[#62929A]/40' },
       { id: 'SELECTED', label: 'Selected', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'FELLOW_JOINED', label: 'Joined Program', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
-      { id: 'FELLOW_COMPLETED', label: 'Completed', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
     ],
   },
 
@@ -187,8 +168,6 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     },
     stages: [
       { id: 'CERT_REGISTERED', label: 'Registered', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-      { id: 'STUDY_STARTED', label: 'Study Started', color: 'bg-[#1A1A1A] text-[#EFECEC] border-white/10' },
-      { id: 'CERT_EXAM_SCHEDULED', label: 'Exam Scheduled', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
       { id: 'CERT_EXAM_PASSED', label: 'Exam Passed', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
       { id: 'CERT_ISSUED', label: 'Certificate Issued', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
     ],
@@ -214,9 +193,7 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
     stages: [
       { id: 'CUSTOM_SAVED', label: 'Saved', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
       { id: 'CUSTOM_SUBMITTED', label: 'Submitted', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-      { id: 'CUSTOM_IN_REVIEW', label: 'In Review', color: 'bg-[#E2B85C]/15 text-[#E2B85C] border-[#E2B85C]/30' },
       { id: 'CUSTOM_ACCEPTED', label: 'Accepted', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
-      { id: 'CUSTOM_COMPLETED', label: 'Completed', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
     ],
   },
 };
@@ -229,7 +206,7 @@ export function getAllStagesForType(typeId?: string, customStages?: { id: string
   const config = getApplicationTypeConfig(typeId);
   const base = config.stages;
   if (customStages && customStages.length > 0) {
-    // Avoid duplicate stage IDs
+    // Combine base and user custom stages cleanly
     const baseIds = new Set(base.map((s) => s.id));
     const uniqueCustom = customStages.filter((cs) => !baseIds.has(cs.id));
     return [...base, ...uniqueCustom];
@@ -241,5 +218,13 @@ export function getStageBadgeForType(typeId: string | undefined, statusId: strin
   const stages = getAllStagesForType(typeId, customStages);
   const found = stages.find((s) => s.id === statusId || s.label === statusId);
   if (found) return found;
-  return { id: statusId, label: statusId.replace(/_/g, ' '), color: 'bg-[#C3195D]/20 text-[#C3195D] border-[#C3195D]/40 font-semibold' };
+
+  if (customStages) {
+    const customFound = customStages.find((cs) => cs.id === statusId || cs.label === statusId);
+    if (customFound) return customFound;
+  }
+
+  // Clean fallback label (do not show raw timestamp IDs)
+  const cleanLabel = statusId.startsWith('CUSTOM_STAGE_') ? 'User Custom Step' : statusId.replace(/_/g, ' ');
+  return { id: statusId, label: cleanLabel, color: 'bg-[#C3195D]/20 text-[#C3195D] border-[#C3195D]/40 font-semibold' };
 }

@@ -102,12 +102,14 @@ export default function ApplicationDetailPage() {
 
   const handleAddCustomStage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newStageName.trim()) return;
+    const stageLabel = newStageName.trim();
+    if (!stageLabel) return;
 
-    const formattedId = `CUSTOM_STAGE_${Date.now()}`;
+    // Use clean human readable string as stage ID and label
+    const stageId = stageLabel.toUpperCase().replace(/\s+/g, '_');
     const newStage = {
-      id: formattedId,
-      label: newStageName.trim(),
+      id: stageId,
+      label: stageLabel,
       color: 'bg-[#C3195D]/25 text-[#EFECEC] border-[#C3195D] font-bold',
     };
 
@@ -122,11 +124,11 @@ export default function ApplicationDetailPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: formattedId,
+          status: stageId,
           extraData: updatedExtraData,
           newEvent: {
-            title: `Added Custom Process Stage: ${newStageName.trim()}`,
-            description: `User created and stepped into custom stage: "${newStageName.trim()}".`,
+            title: `Added Process Step: ${stageLabel}`,
+            description: `User created and stepped into next process: "${stageLabel}".`,
             eventType: 'NOTE',
           },
         }),
@@ -137,6 +139,31 @@ export default function ApplicationDetailPage() {
         setShowAddStageModal(false);
         fetchDetail();
       }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRemoveCustomStage = async (stageIdToRemove: string) => {
+    const updatedCustomStages = customStages.filter((s) => s.id !== stageIdToRemove && s.label !== stageIdToRemove);
+    const updatedExtraData = {
+      ...extraDataObj,
+      customStages: updatedCustomStages,
+    };
+
+    // Default back to first stage if current status was the deleted stage
+    const fallbackStatus = app.status === stageIdToRemove ? typeConfig.stages[0]?.id || 'APPLIED' : app.status;
+
+    try {
+      const res = await fetch(`/api/applications/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: fallbackStatus,
+          extraData: updatedExtraData,
+        }),
+      });
+      if (res.ok) fetchDetail();
     } catch (err) {
       console.error(err);
     }
@@ -203,7 +230,7 @@ export default function ApplicationDetailPage() {
     }
   };
 
-  const currentStageIndex = typeStages.findIndex((s) => s.id === app.status);
+  const currentStageIndex = typeStages.findIndex((s) => s.id === app.status || s.label === app.status);
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -241,7 +268,7 @@ export default function ApplicationDetailPage() {
         </button>
       </div>
 
-      {/* FEATURE 10 & CUSTOM STAGES: VISUAL JOURNEY TIMELINE STRIP */}
+      {/* USER-BUILDABLE VISUAL PROGRESS JOURNEY TIMELINE STRIP */}
       <div className="bg-[#0B0B0B] border border-white/5 p-5 rounded-2xl space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-[#EFECEC] uppercase tracking-wider flex items-center gap-2 font-mono">
@@ -251,10 +278,10 @@ export default function ApplicationDetailPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowAddStageModal(true)}
-              className="px-2.5 py-1 rounded-lg bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-medium flex items-center gap-1 transition shadow-sm"
+              className="px-3 py-1 rounded-xl bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-bold flex items-center gap-1 transition shadow-sm"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>+ Add Custom Stage</span>
+              <span>+ Add Next Process Step</span>
             </button>
             <span className={`px-2.5 py-1 rounded text-xs font-semibold ${currentBadge.color}`}>
               {currentBadge.label}
@@ -262,11 +289,11 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
 
-        {/* INLINE ADD CUSTOM STAGE FORM MODAL */}
+        {/* INLINE ADD CUSTOM PROCESS STEP FORM */}
         {showAddStageModal && (
           <form onSubmit={handleAddCustomStage} className="bg-[#1A1A1A] p-3.5 rounded-xl border border-[#C3195D]/40 space-y-2 animate-fade-in">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-[#EFECEC]">Add Custom Process Stage</h4>
+              <h4 className="text-xs font-bold text-[#EFECEC]">Define Your Next Process Step</h4>
               <button
                 type="button"
                 onClick={() => setShowAddStageModal(false)}
@@ -279,7 +306,7 @@ export default function ApplicationDetailPage() {
               <input
                 type="text"
                 required
-                placeholder="e.g. System Design Round, Physical Fitness Test, Document Verification..."
+                placeholder="e.g. System Design Round, Physical Fitness Test, Machine Coding, Document Verification..."
                 value={newStageName}
                 onChange={(e) => setNewStageName(e.target.value)}
                 className="flex-1 px-3 py-1.5 bg-[#0B0B0B] border border-white/5 rounded-xl text-xs text-[#EFECEC] focus:outline-none focus:border-[#C3195D]"
@@ -288,23 +315,24 @@ export default function ApplicationDetailPage() {
                 type="submit"
                 className="px-4 py-1.5 bg-[#C3195D] hover:bg-[#a5134d] text-[#EFECEC] text-xs font-bold rounded-xl transition shrink-0"
               >
-                Save & Set Active Stage
+                Add & Advance Step
               </button>
             </div>
           </form>
         )}
 
-        {/* Visual Journey Progression Flow */}
+        {/* Dynamic Journey Progression Flow Bar */}
         <div className="flex items-center justify-between overflow-x-auto py-3 px-2 bg-[#1A1A1A] rounded-xl border border-white/5">
           {typeStages.map((stage, idx) => {
             const isCompleted = idx <= currentStageIndex;
             const isCurrent = idx === currentStageIndex;
+            const isCustom = customStages.some((cs) => cs.id === stage.id || cs.label === stage.label);
 
             return (
-              <div key={stage.id} className="flex items-center flex-1 shrink-0 min-w-[110px]">
+              <div key={stage.id} className="flex items-center flex-1 shrink-0 min-w-[120px]">
                 <div
                   onClick={() => handleUpdateStatus(stage.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition cursor-pointer group relative ${
                     isCurrent
                       ? 'bg-[#C3195D] text-[#EFECEC] border-[#C3195D] shadow-md font-bold'
                       : isCompleted
@@ -320,6 +348,21 @@ export default function ApplicationDetailPage() {
                     {isCompleted ? '✓' : idx + 1}
                   </div>
                   <span className="text-[11px] truncate">{stage.label}</span>
+
+                  {/* Allow deleting custom user steps */}
+                  {isCustom && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveCustomStage(stage.id);
+                      }}
+                      title="Remove this custom step"
+                      className="opacity-0 group-hover:opacity-100 text-[#D96C6C] hover:text-white transition ml-1"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
                 </div>
 
                 {idx < typeStages.length - 1 && (
