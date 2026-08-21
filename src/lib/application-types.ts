@@ -176,24 +176,23 @@ export const APPLICATION_TYPES: Record<string, ApplicationTypeConfig> = {
   CUSTOM: {
     id: 'CUSTOM',
     label: 'Custom Application',
-    description: 'General Projects, Grants & Custom Tracking Opportunities',
+    description: 'Fully customizable tracking for any general project, grant, or event',
     iconName: 'Folder',
     requiresResume: false,
     fields: {
-      primaryLabel: 'Organization / Institution *',
-      secondaryLabel: 'Opportunity Title *',
+      primaryLabel: 'Organization / Name *',
+      secondaryLabel: 'Opportunity / Title *',
       showSalary: false,
       showLocation: true,
       locationLabel: 'Location',
       showJobUrl: true,
-      urlLabel: 'Official Website',
-      notesLabel: 'Notes',
-      notesPlaceholder: 'e.g. Key milestone dates and instructions...',
+      urlLabel: 'Official Link',
+      notesLabel: 'Custom Notes & Steps',
+      notesPlaceholder: 'Write whatever notes, details, or custom steps you want...',
     },
     stages: [
-      { id: 'CUSTOM_SAVED', label: 'Saved', color: 'bg-[#1A1A1A] text-[#BFC3C7] border-white/10' },
-      { id: 'CUSTOM_SUBMITTED', label: 'Submitted', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
-      { id: 'CUSTOM_ACCEPTED', label: 'Accepted', color: 'bg-[#6CBF84]/20 text-[#6CBF84] border-[#6CBF84]/40' },
+      { id: 'APPLIED', label: 'Applied', color: 'bg-[#C3195D]/15 text-[#C3195D] border-[#C3195D]/30' },
+      { id: 'COMPLETED', label: 'Completed', color: 'bg-[#6CBF84]/30 text-[#6CBF84] border-[#6CBF84]' },
     ],
   },
 };
@@ -204,11 +203,11 @@ export function getApplicationTypeConfig(typeId?: string): ApplicationTypeConfig
 
 export function getAllStagesForType(typeId?: string, customStages?: { id: string; label: string; color: string }[]) {
   const config = getApplicationTypeConfig(typeId);
-  const initialStage = config.stages[0]; // e.g. "Applied" or "Registered"
-  const finalStage = config.stages.find(s => s.id === 'JOINED' || s.id === 'EXAM_ADMISSION' || s.id === 'ENROLLED' || s.id === 'WINNER') || config.stages[config.stages.length - 1];
+  const initialStage = config.stages[0]; // e.g. "Applied"
+  const finalStage = config.stages.find(s => s.id === 'JOINED' || s.id === 'EXAM_ADMISSION' || s.id === 'ENROLLED' || s.id === 'WINNER' || s.id === 'COMPLETED') || config.stages[config.stages.length - 1];
 
   if (customStages && customStages.length > 0) {
-    // When user creates custom process steps, insert them sequentially right after initial stage ("Applied")
+    // Return initial stage + user custom stages in exact order added + final stage
     const customList = customStages.map(cs => ({
       id: cs.id,
       label: cs.label,
